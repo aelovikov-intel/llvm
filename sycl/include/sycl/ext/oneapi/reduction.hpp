@@ -488,8 +488,7 @@ protected:
   bool InitializeToIdentity;
 };
 
-template <class T>
-struct is_rw_acc_t : public std::false_type {};
+template <class T> struct is_rw_acc_t : public std::false_type {};
 
 template <class T, int AccessorDims, access::placeholder IsPlaceholder,
           typename PropList>
@@ -497,8 +496,7 @@ struct is_rw_acc_t<accessor<T, AccessorDims, access::mode::read_write,
                             access::target::device, IsPlaceholder, PropList>>
     : public std::true_type {};
 
-template <class T>
-struct is_dw_acc_t : public std::false_type {};
+template <class T> struct is_dw_acc_t : public std::false_type {};
 
 template <class T, int AccessorDims, access::placeholder IsPlaceholder,
           typename PropList>
@@ -506,17 +504,14 @@ struct is_dw_acc_t<accessor<T, AccessorDims, access::mode::discard_write,
                             access::target::device, IsPlaceholder, PropList>>
     : public std::true_type {};
 
-template <class T>
-struct is_placeholder_t : public std::false_type {};
+template <class T> struct is_placeholder_t : public std::false_type {};
 
 template <class T, int AccessorDims, access::mode Mode, typename PropList>
 struct is_placeholder_t<accessor<T, AccessorDims, Mode, access::target::device,
                                  access::placeholder::true_t, PropList>>
     : public std::true_type {};
 
-
-template <class T>
-struct accessor_dim_t {
+template <class T> struct accessor_dim_t {
   static constexpr int value = 1;
 };
 
@@ -528,7 +523,7 @@ struct accessor_dim_t<
 };
 
 template <class T> struct get_red_t;
-template <class T> struct get_red_t<T*> {
+template <class T> struct get_red_t<T *> {
   using type = T;
 };
 
@@ -782,10 +777,10 @@ private:
   }
 
 public:
-  using algo::is_usm;
-  using algo::is_rw_acc;
-  using algo::is_dw_acc;
   using algo::is_acc;
+  using algo::is_dw_acc;
+  using algo::is_rw_acc;
+  using algo::is_usm;
 
   using reducer_type = typename algo::reducer_type;
   using rw_accessor_type = typename algo::rw_accessor_type;
@@ -808,8 +803,8 @@ public:
   /// The \param VarPtr is a USM pointer to memory, to where the computed
   /// reduction value is added using BinaryOperation, i.e. it is expected that
   /// the memory is pre-initialized with some meaningful value.
-  template <typename _self = self, enable_if_t<_self::is_known_identity &&
-                                               _self::is_usm> * = nullptr>
+  template <typename _self = self,
+            enable_if_t<_self::is_known_identity && _self::is_usm> * = nullptr>
   reduction_impl(RedOutVar VarPtr, bool InitializeToIdentity = false)
       : algo(reducer_type::getIdentity(), BinaryOperation(),
              InitializeToIdentity, VarPtr) {}
@@ -862,9 +857,10 @@ public:
 
 template <class BinaryOp, int Dims, size_t Extent, typename RedOutVar,
           typename... RestTy>
-auto make_reduction(RedOutVar RedVar, RestTy &&... Rest) {
+auto make_reduction(RedOutVar RedVar, RestTy &&...Rest) {
   return reduction_impl<typename get_red_t<RedOutVar>::type, BinaryOp, Dims,
-                        Extent, RedOutVar>{RedVar, std::forward<RestTy>(Rest)...};
+                        Extent, RedOutVar>{RedVar,
+                                           std::forward<RestTy>(Rest)...};
 }
 
 /// A helper to pass undefined (sycl::detail::auto_name) names unmodified. We
@@ -1269,7 +1265,6 @@ void reduCGFuncForNDRangeFastAtomicsOnly(
     if (LID == 0) {
       Reducer.atomic_combine(Reduction::getOutPointer(Out));
     }
-
   });
 }
 
@@ -1797,7 +1792,9 @@ struct IsNonUsmReductionPredicate {
 };
 
 struct EmptyReductionPredicate {
-  template <typename T> struct Func { static constexpr bool value = false; };
+  template <typename T> struct Func {
+    static constexpr bool value = false;
+  };
 };
 
 template <bool Cond, size_t I> struct FilterElement {
@@ -2111,7 +2108,7 @@ void associateReduAccsWithHandlerHelper(handler &CGH, ReductionT &Redu) {
 template <typename ReductionT, typename... RestT,
           enable_if_t<(sizeof...(RestT) > 0), int> Z = 0>
 void associateReduAccsWithHandlerHelper(handler &CGH, ReductionT &Redu,
-                                        RestT &... Rest) {
+                                        RestT &...Rest) {
   Redu.associateWithHandler(CGH);
   associateReduAccsWithHandlerHelper(CGH, Rest...);
 }
@@ -2511,15 +2508,15 @@ __SYCL_INLINE_CONSTEXPR AccumulatorT known_identity_v =
 
 #ifdef __SYCL_INTERNAL_API
 namespace __SYCL2020_DEPRECATED("use 'ext::oneapi' instead") ONEAPI {
-  using namespace ext::oneapi;
-  namespace detail {
-  using cl::sycl::detail::queue_impl;
-  __SYCL_EXPORT size_t reduGetMaxWGSize(std::shared_ptr<queue_impl> Queue,
-                                        size_t LocalMemBytesPerWorkItem);
-  __SYCL_EXPORT size_t reduComputeWGSize(size_t NWorkItems, size_t MaxWGSize,
-                                         size_t &NWorkGroups);
-  } // namespace detail
-} // namespace ONEAPI
+using namespace ext::oneapi;
+namespace detail {
+using cl::sycl::detail::queue_impl;
+__SYCL_EXPORT size_t reduGetMaxWGSize(std::shared_ptr<queue_impl> Queue,
+                                      size_t LocalMemBytesPerWorkItem);
+__SYCL_EXPORT size_t reduComputeWGSize(size_t NWorkItems, size_t MaxWGSize,
+                                       size_t &NWorkGroups);
+} // namespace detail
+} // namespace __SYCL2020_DEPRECATED("use 'ext::oneapi' instead")ONEAPI
 #endif // __SYCL_INTERNAL_API
 } // namespace sycl
 } // __SYCL_INLINE_NAMESPACE(cl)
