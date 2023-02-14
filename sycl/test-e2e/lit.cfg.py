@@ -178,6 +178,64 @@ if sp[0] == 0:
 else:
     config.substitutions.append( ('%cuda_options', '') )
 
+# Check for device features
+device_features_file='device_features.cpp'
+with open(device_features_file, 'w') as fp:
+    fp.write("""
+#include <sycl/sycl.hpp>
+
+int main() {
+  using namespace sycl;
+
+  auto all_devices = device::get_devices();
+  if (all_devices.size() == 0)
+    return 0;
+
+  auto all_of_devices = [&](auto Pred) {
+    return std::all_of(all_devices.begin(), all_devices.end(), Pred);
+  };
+
+  auto all_devices_have_aspect = [&](aspect an_aspect) {
+    return all_of_devices([&an_aspect](const device &dev) {
+      try {
+        return dev.has(an_aspect);
+      } catch (...) {
+        return false;
+      }
+    });
+  };
+#define PRINT_IF_ALL_HAVE(ASPECT)                                              \
+  if (all_devices_have_aspect(aspect::ASPECT))                                 \
+    std::cout << "aspect_" #ASPECT << std::endl;
+
+#define __SYCL_ASPECT(ASPECT, ID) PRINT_IF_ALL_HAVE(ASPECT)
+#include <sycl/info/aspects.def>
+
+  auto is_pvc = [&](const device &dev) {
+    if (dev.has(aspect::ext_intel_device_id)) {
+      auto device_id = dev.get_info<ext::intel::info::device::device_id>();
+      return (device_id & 0xff0) == 0xbd0;
+    }
+    return false;
+  };
+  if (all_of_devices(is_pvc))
+    std::cout << "gpu-intel-pvc" << std::endl;
+  return 0;
+}
+""")
+
+cmd = (config.dpcpp_compiler+' -fsycl  ' + device_features_file + ' ' +
+       ('/Fe' if cl_options else '-o ') + ' device_features.exe')
+sp = subprocess.getstatusoutput(cmd)
+if sp[0] == 0:
+    print("Compiled:\n{}".format(sp[1]))
+    # TODO: Device filter
+    cmd = ('env ONEAPI_DEVICE_SELECTOR={}:{} ./device_features.exe'.format(config.sycl_be, config.target_devices))
+    sp = subprocess.getstatusoutput(cmd)
+    if sp[0] == 0:
+        for param in sp[1].split('\n'):
+            config.available_features.add(param)
+
 # Check for OpenCL ICD
 if config.opencl_libs_dir:
     if cl_options:
