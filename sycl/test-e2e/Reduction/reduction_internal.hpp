@@ -1,8 +1,3 @@
-// RUN: %clangxx -fsycl -fsycl-targets=%sycl_triple %s -o %t.out
-// RUN: %CPU_RUN_PLACEHOLDER %t.out
-// RUN: %GPU_RUN_PLACEHOLDER %t.out
-// RUN: %ACC_RUN_PLACEHOLDER %t.out
-
 #include <sycl/sycl.hpp>
 using namespace sycl;
 
@@ -46,6 +41,10 @@ struct RedStorage {
 
 template <bool UseUSM, bool InitToIdentity,
           detail::reduction::strategy Strategy, typename RangeTy>
+struct Name {};
+
+template <bool UseUSM, bool InitToIdentity,
+          detail::reduction::strategy Strategy, typename RangeTy>
 static void test(RedStorage &Storage, RangeTy Range) {
   queue &q = Storage.q;
 
@@ -78,7 +77,8 @@ static void test(RedStorage &Storage, RangeTy Range) {
        else
          return reduction(Red, cgh, BinOpTy{});
      }();
-     detail::reduction_parallel_for<detail::auto_name, Strategy>(
+     detail::reduction_parallel_for<
+         Name<UseUSM, InitToIdentity, Strategy, RangeTy>, Strategy>(
          cgh, Range, ext::oneapi::experimental::detail::empty_properties_t{},
          RedSycl, [=](auto Item, auto &Red) { Red.combine(T{1}); });
    }).wait();
@@ -102,46 +102,19 @@ static void test(RedStorage &Storage, RangeTy Range) {
   free(Result, q);
 }
 
-template <int... Inds, class F>
-void loop_impl(std::integer_sequence<int, Inds...>, F &&f) {
-  (f(std::integral_constant<int, Inds>{}), ...);
-}
-
-template <int count, class F> void loop(F &&f) {
-  loop_impl(std::make_integer_sequence<int, count>{}, std::forward<F>(f));
-}
-
 template <bool UseUSM, bool InitToIdentity, typename RangeTy>
 void testAllStrategies(RedStorage &Storage, RangeTy Range) {
-  loop<(int)detail::reduction::strategy::multi>([&](auto Id) {
-    constexpr auto Strategy =
-        // Skip auto_select == 0.
-        detail::reduction::strategy{decltype(Id)::value + 1};
+  detail::loop<(int)detail::reduction::strategy::multi>([&](auto Id) {
+    // Skip auto_select == 0.
+    constexpr auto Strategy = detail::reduction::strategy{Id + 1};
     test<UseUSM, InitToIdentity, Strategy>(Storage, Range);
   });
 }
 
-int main() {
-  queue q;
-  RedStorage Storage(q);
-
-  auto TestRange = [&](auto Range) {
-    testAllStrategies<true, true>(Storage, Range);
-    testAllStrategies<true, false>(Storage, Range);
-    testAllStrategies<false, true>(Storage, Range);
-    testAllStrategies<false, false>(Storage, Range);
-  };
-
-  TestRange(range<1>{42});
-  TestRange(range<2>{8, 8});
-  TestRange(range<3>{7, 7, 5});
-  TestRange(nd_range<1>{range<1>{7}, range<1>{7}});
-  TestRange(nd_range<1>{range<1>{3 * 3}, range<1>{3}});
-
-  // TODO: Strategies historically adopted from sycl::range implementation only
-  // support 1-Dim case.
-  //
-  // TestRange(nd_range<2>{range<2>{7, 3}, range<2> {7, 3}});
-  // TestRange(nd_range<2>{range<2>{14, 9}, range<2> {7, 3}});
-  return 0;
+template <typename RangeTy>
+void testRange(RedStorage &Storage, RangeTy Range) {
+  testAllStrategies<true, true>(Storage, Range);
+  testAllStrategies<true, false>(Storage, Range);
+  testAllStrategies<false, true>(Storage, Range);
+  testAllStrategies<false, false>(Storage, Range);
 }
