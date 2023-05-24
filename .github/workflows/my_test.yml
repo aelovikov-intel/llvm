@@ -1,0 +1,33 @@
+name: WIP
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+
+jobs:
+  files-changed:
+    name: detect what files changed
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    # Map a step output to a job output
+    outputs:
+      only_tests_e2e: ${{ !steps.changes.outputs.not_test_e2e }}
+    steps:
+      - name: Check file changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            not_test_e2e:
+              - '!sycl/test-e2e/**'
+            not_test_e2e2:
+              - '!sycl/test-e2e/*'
+            test_e2e:
+              - 'sycl/test-e2e/**'
+      - name: Print result
+        run: |
+          echo "${{ steps.changes.outputs.not_test_e2e }}"
+          echo "${{ steps.changes.outputs.not_test_e2e2 }}"
+          echo "${{ steps.changes.outputs.test_e2e }}"
