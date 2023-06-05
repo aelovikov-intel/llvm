@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.13.4)
 
+
 if(NOT DEFINED LLVM_COMMON_CMAKE_UTILS)
   set(LLVM_COMMON_CMAKE_UTILS ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 endif()
