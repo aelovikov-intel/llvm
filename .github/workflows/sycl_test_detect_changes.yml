@@ -1,0 +1,30 @@
+name: Test workflow
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+
+jobs:
+  detect_changes:
+    uses: ./.github/workflows/sycl_detect_changes.yml
+
+  print_changes:
+    needs: [detect_changes]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout action
+        run: |
+          mkdir -p devops/actions/lit-tests
+          cd devops/actions/lit-tests
+          wget raw.githubusercontent.com/aelovikov-intel/llvm/wip-filter/devops/actions/lit-tests/action.yml
+          cd ../../..
+
+      - name: LIT tests
+        uses: ./devops/actions/lit-tests
+        with:
+          skip_targets: '[libclc]'
+          filters: ${{ needs.detect_changes.outputs.filters }}
+          build_path: sycl/test-e2e

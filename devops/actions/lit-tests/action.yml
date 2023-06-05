@@ -1,0 +1,74 @@
+name: Run device-agnostic LIT tests (check-*) as part of the build
+inputs:
+  filters:
+    description: 'Filter matches for the changed files in the PR'
+    default: '[llvm, clang, sycl, llvm_spirv, xptifw, libclc, libdevice]'
+    required: false
+  skip_targets:
+    description: 'Checks to skip'
+    default: '[]'
+    required: false
+  build_path:
+    description: 'Path to the build directory'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: check-llvm
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'llvm')
+        && !contains(inputs.skip_targets, 'llvm')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-llvm
+    - name: check-clang
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'clang')
+        && !contains(inputs.skip_targets, 'clang')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-clang
+    - name: check-sycl
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'sycl')
+        && !contains(inputs.skip_targets, 'sycl')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-sycl
+        false
+    - name: check-llvm-spirv
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'llvm_spirv')
+        && !contains(inputs.skip_targets, 'llvm_spirv')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-llvm-spirv
+    - name: check-xptifw
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'xptifw')
+        && !contains(inputs.skip_targets, 'xptifw')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-xptifw
+    - name: check-libclc
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'libclc')
+        && !contains(inputs.skip_targets, 'libclc')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-libclc
+    - name: check-libdevice
+      shell: bash
+      if: |
+        always() && !cancelled()
+        && contains(inputs.filters, 'libdevice')
+        && !contains(inputs.skip_targets, 'libdevice')
+      run: |
+        echo cmake --build ${{ inputs.build_path }} --target check-libdevice
