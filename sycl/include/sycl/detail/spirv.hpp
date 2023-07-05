@@ -19,7 +19,6 @@
 #include <sycl/id.hpp>
 #include <sycl/memory_enums.hpp>
 
-#ifdef __SYCL_DEVICE_ONLY__
 namespace sycl {
 __SYCL_INLINE_VER_NAMESPACE(_V1) {
 namespace ext {
@@ -53,6 +52,7 @@ GetMultiPtrDecoratedAs(multi_ptr<FromT, Space, IsDecorated> MPtr) {
 }
 
 namespace spirv {
+#ifdef __SYCL_DEVICE_ONLY__
 
 template <typename Group> struct group_scope {};
 
@@ -1172,9 +1172,9 @@ __SYCL_GROUP_COLLECTIVE_OVERLOAD(BitwiseAndKHR)
 
 __SYCL_GROUP_COLLECTIVE_OVERLOAD(LogicalAndKHR)
 __SYCL_GROUP_COLLECTIVE_OVERLOAD(LogicalOrKHR)
+#endif //  __SYCL_DEVICE_ONLY__
 
 } // namespace spirv
 } // namespace detail
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)
 } // namespace sycl
-#endif //  __SYCL_DEVICE_ONLY__
