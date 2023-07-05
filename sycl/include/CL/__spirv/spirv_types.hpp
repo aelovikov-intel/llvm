@@ -172,11 +172,36 @@ template <typename dataT>
 using __ocl_RPipeTy = __attribute__((pipe("read_only"))) const dataT;
 template <typename dataT>
 using __ocl_WPipeTy = __attribute__((pipe("write_only"))) const dataT;
+#endif
 
 // OpenCL vector types
+#ifdef __SYCL_DEVICE_ONLY__
 template <typename dataT, int dims>
 using __ocl_vec_t = dataT __attribute__((ext_vector_type(dims)));
+#else
+template <typename dataT, int dims>
+struct __ocl_vec_t;
+template <typename dataT>
+struct __ocl_vec_t<dataT, 4> {
+  int x, y, z, w;
+  size_t operator[](int i) {
+    switch (i) {
+      {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      case 2:
+        return z;
+      case 3:
+        return w;
+      }
+    }
+  }
+};
+#endif
 
+#ifdef __SYCL_DEVICE_ONLY__
 // Struct representing layout of pipe storage
 // TODO: rename to __spirv_ConstantPipeStorage
 struct ConstantPipeStorage {

@@ -12,8 +12,12 @@
 #include <cstdint>
 
 #ifdef __SYCL_DEVICE_ONLY__
-
 #define __SPIRV_VAR_QUALIFIERS extern "C" const
+#else
+// Shouldn't be used on how, use weak to avoid multiple definition errors during
+// link.
+#define __SPIRV_VAR_QUALIFIERS __attribute__((weak))
+#endif
 
 #if defined(__NVPTX__) || defined(__AMDGCN__)
 
@@ -53,7 +57,25 @@ __DPCPP_SYCL_EXTERNAL uint32_t __spirv_SubgroupLocalInvocationId();
 
 #else // defined(__NVPTX__) || defined(__AMDGCN__)
 
+#ifdef __SYCL_DEVICE_ONLY__
 typedef size_t size_t_vec __attribute__((ext_vector_type(3)));
+#else
+struct size_t_vec {
+  size_t x, y, z;
+  size_t operator[](int i) {
+    switch (i) {
+      {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      case 2:
+        return z;
+      }
+    }
+  }
+};
+#endif
 __SPIRV_VAR_QUALIFIERS size_t_vec __spirv_BuiltInGlobalSize;
 __SPIRV_VAR_QUALIFIERS size_t_vec __spirv_BuiltInGlobalInvocationId;
 __SPIRV_VAR_QUALIFIERS size_t_vec __spirv_BuiltInWorkgroupSize;
@@ -206,4 +228,3 @@ __SPIRV_DEFINE_INIT_AND_GET_HELPERS(GlobalOffset)
 
 } // namespace __spirv
 
-#endif // __SYCL_DEVICE_ONLY__

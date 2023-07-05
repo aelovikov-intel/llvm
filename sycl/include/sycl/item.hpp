@@ -12,6 +12,7 @@
 #include <sycl/detail/helpers.hpp>
 #include <sycl/detail/item_base.hpp>
 #include <sycl/detail/type_traits.hpp>
+#include <sycl/ext/oneapi/experimental/if_device.hpp>
 #include <sycl/id.hpp>
 #include <sycl/range.hpp>
 
@@ -143,24 +144,29 @@ private:
 template <int Dims>
 __SYCL_DEPRECATED("use sycl::ext::oneapi::experimental::this_item() instead")
 item<Dims> this_item() {
-#ifdef __SYCL_DEVICE_ONLY__
-  return detail::Builder::getElement(detail::declptr<item<Dims>>());
-#else
-  throw sycl::exception(
-      sycl::make_error_code(sycl::errc::feature_not_supported),
-      "Free function calls are not supported on host");
-#endif
+  std::optional<item<Dims>> ret;
+  ext::oneapi::experimental::if_device([&]() {
+    ret = detail::Builder::getElement(detail::declptr<item<Dims>>());
+  }).otherwise([&]() {
+    throw sycl::exception(
+        sycl::make_error_code(sycl::errc::feature_not_supported),
+        "Free function calls are not supported on host");
+  });
+  return *ret;
 }
 
 namespace ext::oneapi::experimental {
 template <int Dims> item<Dims> this_item() {
-#ifdef __SYCL_DEVICE_ONLY__
-  return sycl::detail::Builder::getElement(sycl::detail::declptr<item<Dims>>());
-#else
-  throw sycl::exception(
-      sycl::make_error_code(sycl::errc::feature_not_supported),
-      "Free function calls are not supported on host");
-#endif
+  std::optional<item<Dims>> ret;
+  ext::oneapi::experimental::if_device([&]() {
+    ret =
+        sycl::detail::Builder::getElement(sycl::detail::declptr<item<Dims>>());
+  }).otherwise([&]() {
+    throw sycl::exception(
+        sycl::make_error_code(sycl::errc::feature_not_supported),
+        "Free function calls are not supported on host");
+  });
+  return *ret;
 }
 } // namespace ext::oneapi::experimental
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)

@@ -120,8 +120,6 @@ public:
     Item.MImpl.MIndex = NextIndex;
   }
 
-#ifdef __SYCL_DEVICE_ONLY__
-
   template <int N>
   using is_valid_dimensions = std::integral_constant<bool, (N > 0) && (N < 4)>;
 
@@ -183,8 +181,6 @@ public:
   static auto getNDItem() -> decltype(getElement(declptr<nd_item<Dims>>())) {
     return getElement(declptr<nd_item<Dims>>());
   }
-
-#endif // __SYCL_DEVICE_ONLY__
 };
 
 inline constexpr __spv::MemorySemanticsMask::Flag
