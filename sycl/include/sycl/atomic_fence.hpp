@@ -10,25 +10,23 @@
 
 #include <CL/__spirv/spirv_ops.hpp>
 #include <sycl/detail/spirv.hpp>
+#include <sycl/ext/oneapi/experimental/if_device.hpp>
 #include <sycl/memory_enums.hpp>
 
-#ifndef __SYCL_DEVICE_ONLY__
 #include <atomic>
-#endif
 
 namespace sycl {
 __SYCL_INLINE_VER_NAMESPACE(_V1) {
 
 static inline void atomic_fence(memory_order order, memory_scope scope) {
-#ifdef __SYCL_DEVICE_ONLY__
-  auto SPIRVOrder = detail::spirv::getMemorySemanticsMask(order);
-  auto SPIRVScope = detail::spirv::getScope(scope);
-  __spirv_MemoryBarrier(SPIRVScope, static_cast<uint32_t>(SPIRVOrder));
-#else
-  (void)scope;
-  auto StdOrder = detail::getStdMemoryOrder(order);
-  atomic_thread_fence(StdOrder);
-#endif
+  ext::oneapi::experimental::if_device([&]() {
+    auto SPIRVOrder = detail::spirv::getMemorySemanticsMask(order);
+    auto SPIRVScope = detail::spirv::getScope(scope);
+    __spirv_MemoryBarrier(SPIRVScope, static_cast<uint32_t>(SPIRVOrder));
+  }).otherwise([&]() {
+    auto StdOrder = detail::getStdMemoryOrder(order);
+    atomic_thread_fence(StdOrder);
+  });
 }
 
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)

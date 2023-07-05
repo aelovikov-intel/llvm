@@ -77,7 +77,6 @@ readMemoryScopeBitfield(pi_memory_scope_capabilities bits) {
   return result;
 }
 
-#ifndef __SYCL_DEVICE_ONLY__
 static constexpr std::memory_order getStdMemoryOrder(sycl::memory_order order) {
   switch (order) {
   case memory_order::relaxed:
@@ -98,7 +97,6 @@ static constexpr std::memory_order getStdMemoryOrder(sycl::memory_order order) {
   // having a default case while all values of enum are handled.
   return std::memory_order_acq_rel;
 }
-#endif // __SYCL_DEVICE_ONLY__
 
 } // namespace detail
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)

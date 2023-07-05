@@ -71,7 +71,6 @@ template <> struct GetSpirvMemoryScope<access::address_space::local_space> {
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)
 } // namespace sycl
 
-#ifndef __SYCL_DEVICE_ONLY__
 // host implementation of SYCL atomics
 namespace sycl {
 __SYCL_INLINE_VER_NAMESPACE(_V1) {
@@ -87,6 +86,7 @@ getStdMemoryOrder(__spv::MemorySemanticsMask::Flag) {
 } // __SYCL_INLINE_VER_NAMESPACE(_V1)
 } // namespace sycl
 
+#ifndef __SYCL_DEVICE_ONLY__
 // std::atomic version of atomic SPIR-V builtins
 
 template <typename T>

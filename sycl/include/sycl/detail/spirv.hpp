@@ -429,6 +429,7 @@ EnableIfGenericBroadcast<T> GroupBroadcast(Group g, T x,
   GenericCall<T>(BroadcastBytes);
   return Result;
 }
+#endif
 
 // Single happens-before means semantics should always apply to all spaces
 // Although consume is unsupported, forwarding to acquire is valid
@@ -477,6 +478,7 @@ static inline constexpr __spv::Scope::Flag getScope(memory_scope Scope) {
   }
 }
 
+#ifdef __SYCL_DEVICE_ONLY__
 template <typename T, access::address_space AddressSpace,
           access::decorated IsDecorated>
 inline typename std::enable_if_t<std::is_integral<T>::value, T>
