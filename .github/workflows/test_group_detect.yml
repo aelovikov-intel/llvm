@@ -1,0 +1,13 @@
+name: Test group detection
+
+on:
+  pull_request_target:
+
+jobs:
+  detect_group:
+    runs-on: ubuntu-20.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: |
+          gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /orgs/intel/teams/llvm-write/memberships/${{ github.event.pull_request.user.login }}
