@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-        echo 6 > linux.txt
-        echo 6 > windows.txt
+        echo 7 > linux.txt
+        echo 7 > windows.txt
 
     - name: Update Tag
       uses: actions/github-script@v3
@@ -32,12 +32,17 @@ jobs:
             sha: context.sha
           })
 
-    - name: Upload binaries to release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          linux.txt
-          windows.txt
-        tag_name: latest-good
-        prerelease: true
-        body: "Latest good nightly build"
+    - env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload --clobber latest-good *.txt
+
+    # - name: Upload binaries to release
+    #   uses: softprops/action-gh-release@v1
+    #   with:
+    #     files: |
+    #       linux.txt
+    #       windows.txt
+    #     tag_name: latest-good
+    #     prerelease: true
+    #     body: "Latest good nightly build"
