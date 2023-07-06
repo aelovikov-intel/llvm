@@ -1,0 +1,43 @@
+name: SYCL Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo 1 > linux.txt
+        echo 1 > windows.txt
+
+    - name: Update Tag
+      uses: actions/github-script@v3
+      with:
+        script: |
+          try {
+            await github.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "tags/latest-good"
+            })
+          } catch (e) {
+          }
+          await github.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: "refs/tags/latest-good",
+            sha: context.sha
+          })
+
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          linux.txt
+          windows.txt
+        tag_name: latest-good
+        prerelease: true
+        body: "Latest good nightly build"
