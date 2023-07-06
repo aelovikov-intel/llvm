@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-        echo 2 > linux.txt
-        echo 2 > windows.txt
+        echo 3 > linux.txt
+        echo 3 > windows.txt
 
     - name: Update Tag
       uses: actions/github-script@v3
