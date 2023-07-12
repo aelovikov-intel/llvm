@@ -1,0 +1,11 @@
+name: My Pre Commit
+
+on:
+  pull_request:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    environment: MyEnv
+    steps:
+      - run: echo "${{ secrets.MY_SECRET_NAME}}"
