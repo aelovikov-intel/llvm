@@ -1,0 +1,32 @@
+name: Unified
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        type: string
+
+      map_str:
+        type: string
+        default: '{"Intel": "ubuntu-latest", "AMD": "ubuntu-20.04", "":""}'
+
+  workflow_dispatch:
+    inputs:
+      predefined_runner:
+        type: choice
+        options:
+          - Intel
+          - AMD
+      map_str:
+        type: choice
+        options:
+          - '{"Intel": "ubuntu-latest", "AMD": "ubuntu-20.04", "":""}'
+
+env:
+  RUNNER: ${{ fromJSON(inputs.map_str)[inputs.predefined_runner] }}
+
+jobs:
+  test:
+    runs-on: ${{ fromJSON(inputs.map_str)[inputs.predefined_runner] }}${{ inputs.runner }}
+    steps:
+    - run: echo Hello
