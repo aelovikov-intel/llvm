@@ -1,0 +1,26 @@
+name: Task3
+
+on:
+  workflow_call:
+    inputs:
+      param:
+        type: string
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Linter"
+
+  build:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{inputs.param}}
+      - run: echo "${{ toJSON(github)}}"
+      - run: sleep 1m
+      - run: echo "Foobar" > 1.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: my-artifact
+          path: 1.txt

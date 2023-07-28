@@ -1,0 +1,31 @@
+name: Task1
+
+on:
+  pull_request:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ github.sha }}"
+
+  call_task3:
+    uses: ./.github/workflows/task3.yml
+    with:
+      param: "Param-value"
+
+  # test:
+  #   needs: [call_task3]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - name: Test One
+  #           runner: ubuntu-latest
+  #           target: t1
+  #         - name: Test Two
+  #           runner: self-hosted
+  #           target: t2
+  #   runs-on: ${{matrix.runner}}
+  #   steps:
+  #     - run: echo "Test ${{matrix.target}}"

@@ -1,0 +1,135 @@
+name: Task2
+run-name: Task2 - ${{ github.event.action }}
+
+on:
+  workflow_run:
+    workflows: [Task1, Task3]
+    types:
+      - completed
+      # - requested
+      # - in_progress
+
+jobs:
+  debug-print:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ toJson(github.event.workflow_run) }}"
+      - run: echo "${{ toJson(github.event.workflow_run.referenced_workflows) }}"
+      - run: echo "${{ toJson(github.event.workflow_run.referenced_workflows[0].sha) }}"
+      - run: echo "${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}"
+      - name: Dump GitHub context - ${{ github.event.action }} / ${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            console.log("Context:")
+            console.log(context)
+            console.log("Github:")
+            console.log(github)
+            console.log("JOBS URL:")
+            const result = await github.request('GET ' + context.payload.workflow_run.jobs_url)
+            console.log(result)
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "my-artifact"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/my-artifact.zip`, Buffer.from(download.data));
+
+  #     - name: 'Unzip artifact'
+  #       run: |
+  #         unzip my-artifact.zip
+  #         rm my-artifact.zip
+  #     - run: cat 1.txt
+  #     - run: echo "Running" && exit 1
+
+  # create-check:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     id: ${{ steps.create_check.outputs.result }}
+  #   steps:
+  #     - uses: actions/github-script@v6
+  #       id: create_check
+  #       with:
+  #         script: |
+  #           const sha = context.payload.workflow_run.head_sha
+  #           const run_id = '${{ github.run_id }}'
+  #           const this_run_url = 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + run_id
+
+  #           const result = await  github.request('POST /repos/{owner}/{repo}/check-runs', {
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             name: 'mega-check',
+  #             head_sha: sha,
+  #             details_url: this_run_url,
+  #             status: 'in_progress',
+  #             output: {
+  #               title: 'Mega Check',
+  #               summary: 'URL: ' + this_run_url
+  #             }
+  #           })
+  #           console.log(result)
+  #           const result2 = await github.request('POST /repos/{owner}/{repo}/statuses/{sha}', {
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             sha: sha,
+  #             state: 'pending',
+  #             target_url: this_run_url,
+  #             description: 'Mega status',
+  #             context: 'Mega stauts context',
+  #           })
+  #           console.log(result2)
+  #           return result.data.id
+
+  # update-check:
+  #   needs: [create-check, debug-print, test]
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo "${{ toJSON(needs.debug-print) }}"
+  #     - run: echo "${{ toJSON(needs.test) }}"
+  #     - uses: actions/github-script@v6
+  #       with:
+  #         script: |
+  #           const result = await github.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             check_run_id: '${{needs.create-check.outputs.id}}',
+  #             status: 'completed',
+  #             conclusion: '${{ needs.test.result }}'
+  #           })
+  #           console.log(result)
+
+  #           const sha = context.payload.workflow_run.head_sha
+  #           const run_id = '${{ github.run_id }}'
+  #           const this_run_url = 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + run_id
+
+  #           const result2 = await github.request('POST /repos/{owner}/{repo}/statuses/{sha}', {
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             sha: sha,
+  #             state: '${{ needs.test.result }}',
+  #             target_url: this_run_url,
+  #             description: 'Mega status',
+  #             context: 'Mega stauts context',
+  #           })
