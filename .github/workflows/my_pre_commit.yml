@@ -1,0 +1,23 @@
+name: Test Pre Commit
+
+on:
+  pull_request:
+
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Detect changes"
+
+  build:
+    needs: [detect_changes]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Build"
+
+  test:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Test"
