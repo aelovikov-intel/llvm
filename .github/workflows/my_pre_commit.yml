@@ -1,4 +1,4 @@
-name: Test Pre Commit
+name: Test Pre Commit (changed)
 
 on:
   pull_request:
