@@ -18,6 +18,7 @@ jobs:
 
   test:
     needs: [build]
+    environment: LockedCINeedsApproval
     runs-on: ubuntu-latest
     steps:
       - run: echo "Test"
