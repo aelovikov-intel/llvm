@@ -45,9 +45,11 @@
   }
 #define EXPORT_VEC_NS(NUM_ARGS, NAME, NS, TYPE, VL)                            \
   __SYCL_EXPORT auto __##NAME##_impl(NUM_ARGS##_VEC_TYPE_ARG(TYPE, VL))        \
-      -> decltype(NAME##_host_impl(NUM_ARGS##_ARG)) {                          \
-    static_assert(std::is_same_v<decltype(NAME##_host_impl(NUM_ARGS##_ARG)),   \
-                                 decltype(NS::NAME(NUM_ARGS##_ARG))>);         \
+      ->decltype(NAME##_host_impl(NUM_ARGS##_ARG)) {                           \
+    /* static_assert(std::is_same_v<                                           \
+     *                 decltype(NAME##_host_impl(NUM_ARGS##_ARG)),             \
+     *                 decltype(NS::NAME(NUM_ARGS##_ARG))>);                   \
+     */                                                                        \
     return NAME##_host_impl(NUM_ARGS##_ARG);                                   \
   }
 

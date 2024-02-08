@@ -137,7 +137,10 @@ auto builtin_marray_impl(FuncTy F, const Ts &...x) {
   marray<ret_elem_type, T::size()> Res;
   constexpr auto N = T::size();
   for (size_t I = 0; I < N / 2; ++I) {
-    auto PartialRes = F(to_vec2(x, I * 2)...);
+    auto PartialRes =
+        F(to_vec2(x, I * 2)
+              .template as<
+                  vec<get_fixed_sized_int_t<get_elem_type_t<T>>, 2>>()...);
     std::memcpy(&Res[I * 2], &PartialRes, sizeof(decltype(PartialRes)));
   }
   if (N % 2)
