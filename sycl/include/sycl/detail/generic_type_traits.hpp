@@ -683,9 +683,9 @@ struct ConvertToOpenCLTypeImpl<multi_ptr<ElementType, Space, DecorateAddress>> {
       typename ConvertToOpenCLTypeImpl<ElementType>::type, Space>::type *;
 };
 
-template <typename T>
-using ConvertToOpenCLType_t =
-    typename ConvertToOpenCLTypeImpl<SelectMatchingOpenCLType_t<T>>::type;
+// template <typename T>
+// using ConvertToOpenCLType_t =
+//     typename ConvertToOpenCLTypeImpl<SelectMatchingOpenCLType_t<T>>::type;
 
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
@@ -742,6 +742,13 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     return static_cast<OpenCLType>(x);
   }
 }
+template <typename T>
+struct My {
+  using type = decltype(convertToOpenCLType(std::declval<T>()));
+  // static_assert(std::is_same_v<type, typename ConvertToOpenCLTypeImpl<
+  //                                        SelectMatchingOpenCLType_t<T>>::type>);
+};
+template <typename T> using ConvertToOpenCLType_t = typename My<T>::type;
 
 template <typename To, typename From> auto convertFromOpenCLTypeFor(From &&x) {
   if constexpr (std::is_same_v<To, bool> &&
