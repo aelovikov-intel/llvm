@@ -740,9 +740,14 @@ template <typename To, typename From> auto convertFromOpenCLTypeFor(From &&x) {
     // FIXME: Something seems to be wrong elsewhere...
     return x;
   } else {
+    using OpenCLType = decltype(convertToOpenCLType(std::declval<To>()));
     static_assert(std::is_same_v<std::remove_reference_t<From>,
-                                 ConvertToOpenCLType_t<To>>);
-    return convertDataToType<From, To>(std::forward<From>(x));
+                                 OpenCLType>);
+    static_assert(sizeof(OpenCLType) == sizeof(To));
+    if constexpr (is_vec_v<To> && is_vec_v<From>)
+      return x.template as<To>();
+    else
+      return static_cast<To>(x);
   }
 }
 
