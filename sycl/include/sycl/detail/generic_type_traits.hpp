@@ -473,13 +473,6 @@ struct PointerConverter<multi_ptr<ElementType, Space, DecorateAddress>> {
   }
 };
 
-template <typename To, typename From> To ConvertNonVectorType(From &t) {
-  if constexpr (is_pointer_v<From>)
-    return PointerConverter<To>::Convert(t);
-  else
-    return static_cast<To>(t);
-}
-
 template <typename T, typename = void> struct mptr_or_vec_elem_type {
   using type = typename T::element_type;
 };
@@ -694,18 +687,6 @@ template <typename T>
 using ConvertToOpenCLType_t =
     typename ConvertToOpenCLTypeImpl<SelectMatchingOpenCLType_t<T>>::type;
 
-// convertDataToType() function converts data from FROM type to TO type using
-// 'as' method for vector type and copy otherwise.
-template <typename FROM, typename TO>
-typename std::enable_if_t<sizeof(TO) == sizeof(FROM), TO>
-convertDataToType(FROM t) {
-  if constexpr (is_vgentype_v<FROM> && is_vgentype_v<TO>)
-    return t.template as<TO>();
-  else
-    return ConvertNonVectorType<TO>(t);
-}
-
-// Now fuse the above into a simpler helper that's easy to use.
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
