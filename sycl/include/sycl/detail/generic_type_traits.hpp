@@ -572,43 +572,6 @@ struct select_cl_vector_or_scalar_or_ptr<
   using type = select_cl_scalar_t<T>;
 };
 
-template <typename T>
-struct select_cl_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<!is_vgentype_v<T> && std::is_pointer_v<T>>> {
-  using elem_ptr_type =
-      typename select_cl_vector_or_scalar_or_ptr<std::remove_pointer_t<T>>::type
-          *;
-#ifdef __SYCL_DEVICE_ONLY__
-  using type = typename DecoratedType<elem_ptr_type, deduce_AS<T>::value>::type;
-#else
-  using type = elem_ptr_type;
-#endif
-};
-
-// this struct helps to use std::uint8_t instead of std::byte,
-// which is not supported on device
-template <typename T> struct TypeHelper {
-  using RetType = T;
-};
-
-#if (!defined(_HAS_STD_BYTE) || _HAS_STD_BYTE != 0)
-template <> struct TypeHelper<std::byte> {
-  using RetType = std::uint8_t;
-};
-#endif
-
-template <typename T> struct TypeHelper<const T> {
-  using RetType = const typename TypeHelper<T>::RetType;
-};
-
-template <typename T> struct TypeHelper<volatile T> {
-  using RetType = volatile typename TypeHelper<T>::RetType;
-};
-
-template <typename T> struct TypeHelper<const volatile T> {
-  using RetType = const volatile typename TypeHelper<T>::RetType;
-};
-
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
@@ -660,8 +623,7 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
   } else {
-    using OpenCLType =
-        typename select_cl_vector_or_scalar_or_ptr<no_ref>::type;
+    using OpenCLType = select_cl_scalar_t<no_ref>;
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   }
