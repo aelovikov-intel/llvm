@@ -533,20 +533,6 @@ using select_cl_scalar_integral_t =
                        select_cl_scalar_integral_signed_t<T>,
                        select_cl_scalar_integral_unsigned_t<T>>;
 
-// select_cl_scalar_t picks corresponding cl_* type for input
-// scalar T or returns T if T is not scalar.
-template <typename T>
-using select_cl_scalar_t = std::conditional_t<
-    std::is_integral_v<T>, select_cl_scalar_integral_t<T>,
-    std::conditional_t<
-        std::is_floating_point_v<T>, select_cl_scalar_float_t<T>,
-        // half and bfloat16 are special cases: they are implemented differently
-        // on host and device and therefore might lower to different types
-        std::conditional_t<
-            is_half_v<T>, sycl::detail::half_impl::BIsRepresentationT,
-            std::conditional_t<is_bfloat16_v<T>, T,
-                               select_cl_scalar_complex_or_T_t<T>>>>>;
-
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
