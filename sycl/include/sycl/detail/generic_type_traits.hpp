@@ -620,15 +620,7 @@ template <typename T> using type_helper = typename TypeHelper<T>::RetType;
 
 template <typename T>
 struct select_cl_mptr_or_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<is_genptr_v<T> && !std::is_pointer_v<T>>> {
-  using type = multi_ptr<typename select_cl_vector_or_scalar_or_ptr<
-                             type_helper<mptr_or_vec_elem_type_t<T>>>::type,
-                         T::address_space, access::decorated::yes>;
-};
-
-template <typename T>
-struct select_cl_mptr_or_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<!is_genptr_v<T> || std::is_pointer_v<T>>> {
+    T, typename std::enable_if_t<!is_genptr_v<T>>> {
   using type = typename select_cl_vector_or_scalar_or_ptr<T>::type;
 };
 
