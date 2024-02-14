@@ -576,14 +576,14 @@ template <typename T> auto convertToOpenCLType(T &&x) {
 #if 1
     // No idea why this is necessary, most likely ABI bug-compatibility with
     // previous release.
+    using ElemTy = typename no_ref::element_type;
+    // sycl::half may convert to _Float16, and we would try to instantiate
+    // vec class with _Float16 DataType, which is not expected there. As
+    // such, leave vector<half, N> as-is.
     using MatchingVec =
-        // select_cl_scalar_t may return _Float16, so, we try to instantiate vec
-        // class with _Float16 DataType, which is not expected there
-        // So, leave vector<half, N> as-is
-        vec<std::conditional_t<
-                is_half_v<mptr_or_vec_elem_type_t<no_ref>>,
-                mptr_or_vec_elem_type_t<no_ref>,
-                select_cl_scalar_t<mptr_or_vec_elem_type_t<no_ref>>>,
+        vec<std::conditional_t<is_half_v<ElemTy>, ElemTy,
+                               decltype(convertToOpenCLType(
+                                   std::declval<ElemTy>()))>,
             no_ref::size()>;
     return x.template as<MatchingVec>();
 #else
@@ -604,7 +604,17 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
   } else {
-    using OpenCLType = select_cl_scalar_t<no_ref>;
+    using OpenCLType = std::conditional_t<
+        std::is_integral_v<no_ref>, select_cl_scalar_integral_t<no_ref>,
+        std::conditional_t<
+            std::is_floating_point_v<no_ref>, select_cl_scalar_float_t<no_ref>,
+            // half and bfloat16 are special cases: they are implemented
+            // differently on host and device and therefore might lower to
+            // different types
+            std::conditional_t<
+                is_half_v<no_ref>, sycl::detail::half_impl::BIsRepresentationT,
+                std::conditional_t<is_bfloat16_v<no_ref>, no_ref,
+                                   select_cl_scalar_complex_or_T_t<no_ref>>>>>;
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   }
