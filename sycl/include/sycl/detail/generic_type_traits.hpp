@@ -585,13 +585,6 @@ struct select_cl_vector_or_scalar_or_ptr<
 #endif
 };
 
-// select_cl_mptr_or_vector_or_scalar_or_ptr does cl_* type selection for type
-// pointed by multi_ptr, for raw pointers, for element type of a vector type T,
-// and does scalar type substitution.  If T is not mutlti_ptr or vector or
-// scalar or pointer unmodified T is returned.
-template <typename T, typename Enable = void>
-struct select_cl_mptr_or_vector_or_scalar_or_ptr;
-
 // this struct helps to use std::uint8_t instead of std::byte,
 // which is not supported on device
 template <typename T> struct TypeHelper {
@@ -615,19 +608,6 @@ template <typename T> struct TypeHelper<volatile T> {
 template <typename T> struct TypeHelper<const volatile T> {
   using RetType = const volatile typename TypeHelper<T>::RetType;
 };
-
-template <typename T> using type_helper = typename TypeHelper<T>::RetType;
-
-template <typename T>
-struct select_cl_mptr_or_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<!is_genptr_v<T>>> {
-  using type = typename select_cl_vector_or_scalar_or_ptr<T>::type;
-};
-
-// All types converting shortcut.
-template <typename T>
-using SelectMatchingOpenCLType_t =
-    typename select_cl_mptr_or_vector_or_scalar_or_ptr<T>::type;
 
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
@@ -658,7 +638,8 @@ template <typename T> auto convertToOpenCLType(T &&x) {
 #if 1
     // No idea why this is necessary, most likely ABI bug-compatibility with
     // previous release.
-    using MatchingVec = SelectMatchingOpenCLType_t<no_ref>;
+    using MatchingVec =
+        typename select_cl_vector_or_scalar_or_ptr<no_ref>::type;
     static_assert(is_vec_v<MatchingVec>);
     return x.template as<MatchingVec>();
 #else
@@ -679,7 +660,8 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
   } else {
-    using OpenCLType = SelectMatchingOpenCLType_t<no_ref>;
+    using OpenCLType =
+        typename select_cl_vector_or_scalar_or_ptr<no_ref>::type;
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   }

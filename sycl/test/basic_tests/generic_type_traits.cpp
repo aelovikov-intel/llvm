@@ -164,6 +164,7 @@ int main() {
   */
 
   // checks for some type conversions.
+#if 0
   static_assert(std::is_same<d::SelectMatchingOpenCLType_t<s::opencl::cl_int>,
                              s::opencl::cl_int>::value);
 
@@ -211,6 +212,7 @@ int main() {
           s::multi_ptr<s::vec<s::opencl::cl_long, 2>,
                        s::access::address_space::global_space,
                        s::access::decorated::yes>>::value);
+#endif
 
 #ifdef __SYCL_DEVICE_ONLY__
   static_assert(
