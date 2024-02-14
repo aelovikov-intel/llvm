@@ -547,31 +547,6 @@ using select_cl_scalar_t = std::conditional_t<
             std::conditional_t<is_bfloat16_v<T>, T,
                                select_cl_scalar_complex_or_T_t<T>>>>>;
 
-// select_cl_vector_or_scalar_or_ptr does cl_* type selection for element type
-// of a vector type T, pointer type substitution, and scalar type substitution.
-// If T is not vector, scalar, or pointer unmodified T is returned.
-template <typename T, typename Enable = void>
-struct select_cl_vector_or_scalar_or_ptr;
-
-template <typename T>
-struct select_cl_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<is_vgentype_v<T>>> {
-  using type =
-      // select_cl_scalar_t may return _Float16, so, we try to instantiate vec
-      // class with _Float16 DataType, which is not expected there
-      // So, leave vector<half, N> as-is
-      vec<std::conditional_t<is_half_v<mptr_or_vec_elem_type_t<T>>,
-                             mptr_or_vec_elem_type_t<T>,
-                             select_cl_scalar_t<mptr_or_vec_elem_type_t<T>>>,
-          T::size()>;
-};
-
-template <typename T>
-struct select_cl_vector_or_scalar_or_ptr<
-    T, typename std::enable_if_t<!is_vgentype_v<T> && !std::is_pointer_v<T>>> {
-  using type = select_cl_scalar_t<T>;
-};
-
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
@@ -602,8 +577,14 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     // No idea why this is necessary, most likely ABI bug-compatibility with
     // previous release.
     using MatchingVec =
-        typename select_cl_vector_or_scalar_or_ptr<no_ref>::type;
-    static_assert(is_vec_v<MatchingVec>);
+        // select_cl_scalar_t may return _Float16, so, we try to instantiate vec
+        // class with _Float16 DataType, which is not expected there
+        // So, leave vector<half, N> as-is
+        vec<std::conditional_t<
+                is_half_v<mptr_or_vec_elem_type_t<no_ref>>,
+                mptr_or_vec_elem_type_t<no_ref>,
+                select_cl_scalar_t<mptr_or_vec_elem_type_t<no_ref>>>,
+            no_ref::size()>;
     return x.template as<MatchingVec>();
 #else
     return std::forward<T>(x);
