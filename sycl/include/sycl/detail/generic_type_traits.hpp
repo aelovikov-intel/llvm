@@ -566,11 +566,10 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     // sycl::half may convert to _Float16, and we would try to instantiate
     // vec class with _Float16 DataType, which is not expected there. As
     // such, leave vector<half, N> as-is.
-    using MatchingVec =
-        vec<std::conditional_t<is_half_v<ElemTy>, ElemTy,
-                               decltype(convertToOpenCLType(
-                                   std::declval<ElemTy>()))>,
-            no_ref::size()>;
+    using MatchingVec = vec<std::conditional_t<is_half_v<ElemTy>, ElemTy,
+                                               decltype(convertToOpenCLType(
+                                                   std::declval<ElemTy>()))>,
+                            no_ref::size()>;
     return x.template as<MatchingVec>();
 #else
     return std::forward<T>(x);
@@ -589,18 +588,22 @@ template <typename T> auto convertToOpenCLType(T &&x) {
 #endif
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
+  } else if constexpr (std::is_integral_v<no_ref>) {
+    using OpenCLType = select_cl_scalar_integral_t<no_ref>;
+    static_assert(sizeof(OpenCLType) == sizeof(T));
+    return static_cast<OpenCLType>(x);
+  } else if constexpr (std::is_floating_point_v<no_ref>) {
+    using OpenCLType = select_cl_scalar_float_t<no_ref>;
+    static_assert(sizeof(OpenCLType) == sizeof(T));
+    return static_cast<OpenCLType>(x);
+  } else if constexpr (is_half_v<no_ref>) {
+    using OpenCLType = sycl::detail::half_impl::BIsRepresentationT;
+    static_assert(sizeof(OpenCLType) == sizeof(T));
+    return static_cast<OpenCLType>(x);
+  } else if constexpr (is_bfloat16_v<no_ref>) {
+    return std::forward<T>(x);
   } else {
-    using OpenCLType = std::conditional_t<
-        std::is_integral_v<no_ref>, select_cl_scalar_integral_t<no_ref>,
-        std::conditional_t<
-            std::is_floating_point_v<no_ref>, select_cl_scalar_float_t<no_ref>,
-            // half and bfloat16 are special cases: they are implemented
-            // differently on host and device and therefore might lower to
-            // different types
-            std::conditional_t<
-                is_half_v<no_ref>, sycl::detail::half_impl::BIsRepresentationT,
-                std::conditional_t<is_bfloat16_v<no_ref>, no_ref,
-                                   select_cl_scalar_complex_or_T_t<no_ref>>>>>;
+    using OpenCLType = select_cl_scalar_complex_or_T_t<no_ref>;
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   }
