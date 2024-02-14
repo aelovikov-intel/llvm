@@ -433,65 +433,6 @@ public:
   static constexpr bool value = !std::is_same_v<T, type>;
 };
 
-template <typename To> struct PointerConverter {
-  template <typename From> static To Convert(From *t) {
-    return reinterpret_cast<To>(t);
-  }
-
-  template <typename From> static To Convert(From &t) {
-    if constexpr (is_non_legacy_multi_ptr_v<From>) {
-      return detail::cast_AS<To>(t.get_decorated());
-    } else if constexpr (is_legacy_multi_ptr_v<From>) {
-      return detail::cast_AS<To>(t.get());
-    } else {
-      // TODO find the better way to get the pointer to underlying data from vec
-      // class
-      return reinterpret_cast<To>(t.get());
-    }
-  }
-};
-
-template <typename ElementType, access::address_space Space,
-          access::decorated DecorateAddress>
-struct PointerConverter<multi_ptr<ElementType, Space, DecorateAddress>> {
-  template <typename From>
-  static multi_ptr<ElementType, Space, DecorateAddress> Convert(From *t) {
-    return address_space_cast<Space, DecorateAddress>(
-        reinterpret_cast<remove_decoration_t<From *>>(t));
-  }
-
-  template <typename From>
-  static multi_ptr<ElementType, Space, DecorateAddress> Convert(From &t) {
-    return address_space_cast<Space, DecorateAddress>(
-        reinterpret_cast<remove_decoration_t<decltype(t.get())>>(t.get()));
-  }
-
-  template <typename From>
-  static multi_ptr<ElementType, Space, DecorateAddress>
-  Convert(multi_ptr<ElementType, Space, DecorateAddress> &t) {
-    return t;
-  }
-};
-
-template <typename T, typename = void> struct mptr_or_vec_elem_type {
-  using type = typename T::element_type;
-};
-template <typename ElementType, access::address_space Space,
-          access::decorated IsDecorated>
-struct mptr_or_vec_elem_type<
-    multi_ptr<ElementType, Space, IsDecorated>,
-    std::enable_if_t<IsDecorated == access::decorated::no ||
-                     IsDecorated == access::decorated::yes>> {
-  using type = typename multi_ptr<ElementType, Space, IsDecorated>::value_type;
-};
-template <typename ElementType, access::address_space Space,
-          access::decorated IsDecorated>
-struct mptr_or_vec_elem_type<const multi_ptr<ElementType, Space, IsDecorated>>
-    : mptr_or_vec_elem_type<multi_ptr<ElementType, Space, IsDecorated>> {};
-
-template <typename T>
-using mptr_or_vec_elem_type_t = typename mptr_or_vec_elem_type<T>::type;
-
 // select_apply_cl_scalar_t selects from T8/T16/T32/T64 basing on
 // sizeof(IN).  expected to handle scalar types.
 template <typename T, typename T8, typename T16, typename T32, typename T64>
@@ -513,7 +454,9 @@ using select_cl_scalar_integral_unsigned_t =
 
 // Use SFINAE so that std::complex specialization could be implemented in
 // include/sycl/stl_wrappers/complex that would only be available if STL's
-// <complex> is included by users.
+// <complex> is included by users. Note that "function template partial
+// specialization" is not allowed, so we cannot perform that trick on
+// convertToOpenCLType function directly.
 template <typename T, typename = void> struct select_cl_scalar_complex_or_T {
   using type = T;
 };
