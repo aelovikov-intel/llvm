@@ -756,8 +756,9 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
   } else {
-    using OpenCLType = ConvertToOpenCLType_t<no_ref>;
-    return convertDataToType<T, OpenCLType>(std::forward<T>(x));
+    using OpenCLType = SelectMatchingOpenCLType_t<no_ref>;
+    static_assert(sizeof(OpenCLType) == sizeof(T));
+    return static_cast<OpenCLType>(x);
   }
 }
 
