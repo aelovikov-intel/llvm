@@ -97,11 +97,10 @@ template <typename T> auto convert_arg(T &&x) {
     return bit_cast<result_type>(static_cast<typename no_cv_ref::vector_t>(x));
   } else if constexpr (is_swizzle_v<no_cv_ref>) {
     return convert_arg(simplify_if_swizzle_t<no_cv_ref>{x});
-  } else if constexpr (std::is_same_v<no_cv_ref, half>) {
-    return static_cast<half_impl::BIsRepresentationT>(x);
   } else {
     static_assert(is_scalar_arithmetic_v<no_cv_ref> ||
-                  is_multi_ptr_v<no_cv_ref> || std::is_pointer_v<no_cv_ref>);
+                  is_multi_ptr_v<no_cv_ref> || std::is_pointer_v<no_cv_ref> ||
+                  std::is_same_v<no_cv_ref, half>);
     return convertToOpenCLType(std::forward<T>(x));
   }
 }
