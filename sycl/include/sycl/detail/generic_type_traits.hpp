@@ -511,11 +511,6 @@ using select_cl_scalar_integral_unsigned_t =
     select_apply_cl_scalar_t<T, sycl::opencl::cl_uchar, sycl::opencl::cl_ushort,
                              sycl::opencl::cl_uint, sycl::opencl::cl_ulong>;
 
-template <typename T>
-using select_cl_scalar_float_t =
-    select_apply_cl_scalar_t<T, std::false_type, sycl::opencl::cl_half,
-                             sycl::opencl::cl_float, sycl::opencl::cl_double>;
-
 // Use SFINAE so that std::complex specialization could be implemented in
 // include/sycl/stl_wrappers/complex that would only be available if STL's
 // <complex> is included by users.
@@ -526,12 +521,6 @@ template <typename T, typename = void> struct select_cl_scalar_complex_or_T {
 template <typename T>
 using select_cl_scalar_complex_or_T_t =
     typename select_cl_scalar_complex_or_T<T>::type;
-
-template <typename T>
-using select_cl_scalar_integral_t =
-    std::conditional_t<std::is_signed_v<T>,
-                       select_cl_scalar_integral_signed_t<T>,
-                       select_cl_scalar_integral_unsigned_t<T>>;
 
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
@@ -589,11 +578,10 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_same_v<no_ref, std::byte>) {
     return static_cast<uint8_t>(x);
   } else if constexpr (std::is_integral_v<no_ref>) {
-    using OpenCLType = select_cl_scalar_integral_t<no_ref>;
-    static_assert(sizeof(OpenCLType) == sizeof(T));
-    return static_cast<OpenCLType>(x);
-  } else if constexpr (std::is_floating_point_v<no_ref>) {
-    using OpenCLType = select_cl_scalar_float_t<no_ref>;
+    using OpenCLType =
+        std::conditional_t<std::is_signed_v<no_ref>,
+                           select_cl_scalar_integral_signed_t<no_ref>,
+                           select_cl_scalar_integral_unsigned_t<no_ref>>;
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   } else if constexpr (is_half_v<no_ref>) {
@@ -601,6 +589,13 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     static_assert(sizeof(OpenCLType) == sizeof(T));
     return static_cast<OpenCLType>(x);
   } else if constexpr (is_bfloat16_v<no_ref>) {
+    return std::forward<T>(x);
+  } else if constexpr (std::is_floating_point_v<no_ref>) {
+    static_assert(std::is_same_v<no_ref, float> ||
+                      std::is_same_v<no_ref, double>,
+                  "Other FP types are not expected/supported (yet?)");
+    static_assert(std::is_same_v<float, sycl::opencl::cl_float> &&
+                  std::is_same_v<double, sycl::opencl::cl_double>);
     return std::forward<T>(x);
   } else {
     using OpenCLType = select_cl_scalar_complex_or_T_t<no_ref>;
