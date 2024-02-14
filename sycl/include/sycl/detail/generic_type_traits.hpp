@@ -714,8 +714,8 @@ template <typename T> auto convertToOpenCLType(T &&x) {
   } else if constexpr (std::is_pointer_v<no_ref>) {
     // TODO: Below ignores volatile, but we didn't have a need for it yet.
     using elem_type = remove_decoration_t<std::remove_pointer_t<no_ref>>;
-    using converted_elem_type_no_cv =
-        ConvertToOpenCLType_t<std::remove_const_t<elem_type>>;
+    using converted_elem_type_no_cv = decltype(convertToOpenCLType(
+        std::declval<std::remove_const_t<elem_type>>()));
     using converted_elem_type =
         std::conditional_t<std::is_const_v<elem_type>,
                            const converted_elem_type_no_cv,
