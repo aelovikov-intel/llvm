@@ -637,56 +637,6 @@ template <typename T>
 using SelectMatchingOpenCLType_t =
     typename select_cl_mptr_or_vector_or_scalar_or_ptr<T>::type;
 
-// Converts T to OpenCL friendly
-//
-template <typename T> struct ConvertToOpenCLTypeImpl {
-  using type = T;
-};
-
-#ifdef __SYCL_DEVICE_ONLY__
-template <typename Type, int NumElements>
-struct ConvertToOpenCLTypeImpl<vec<Type, NumElements>> {
-  using type = typename vec<Type, NumElements>::vector_t;
-};
-
-template <int N> struct ConvertToOpenCLTypeImpl<Boolean<N>> {
-  using type = typename Boolean<N>::vector_t;
-};
-template <> struct ConvertToOpenCLTypeImpl<Boolean<1>> {
-  // Or should it be "int"?
-  using type = Boolean<1>;
-};
-#if (!defined(_HAS_STD_BYTE) || _HAS_STD_BYTE != 0)
-// TODO: It seems we only use this to convert a pointer's element type. As such,
-// although it doesn't look very clean, it should be ok having this case handled
-// explicitly until further refactoring of this area.
-template <> struct ConvertToOpenCLTypeImpl<std::byte> {
-  using type = uint8_t;
-};
-#endif
-#endif
-
-template <typename T> struct ConvertToOpenCLTypeImpl<T *> {
-#ifdef __SYCL_DEVICE_ONLY__
-  using type = typename DecoratedType<
-      typename ConvertToOpenCLTypeImpl<remove_decoration_t<T>>::type,
-      deduce_AS<T>::value>::type *;
-#else
-  using type = typename ConvertToOpenCLTypeImpl<T>::type *;
-#endif
-};
-
-template <typename ElementType, access::address_space Space,
-          access::decorated DecorateAddress>
-struct ConvertToOpenCLTypeImpl<multi_ptr<ElementType, Space, DecorateAddress>> {
-  using type = typename DecoratedType<
-      typename ConvertToOpenCLTypeImpl<ElementType>::type, Space>::type *;
-};
-
-// template <typename T>
-// using ConvertToOpenCLType_t =
-//     typename ConvertToOpenCLTypeImpl<SelectMatchingOpenCLType_t<T>>::type;
-
 // TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
@@ -742,13 +692,9 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     return static_cast<OpenCLType>(x);
   }
 }
+
 template <typename T>
-struct My {
-  using type = decltype(convertToOpenCLType(std::declval<T>()));
-  // static_assert(std::is_same_v<type, typename ConvertToOpenCLTypeImpl<
-  //                                        SelectMatchingOpenCLType_t<T>>::type>);
-};
-template <typename T> using ConvertToOpenCLType_t = typename My<T>::type;
+using ConvertToOpenCLType_t = decltype(convertToOpenCLType(std::declval<T>()));
 
 template <typename To, typename From> auto convertFromOpenCLTypeFor(From &&x) {
   if constexpr (std::is_same_v<To, bool> &&
