@@ -728,6 +728,33 @@ template <typename T> auto convertToOpenCLType(T &&x) {
     using result_type = converted_elem_type *;
 #endif
     return reinterpret_cast<result_type>(x);
+  } else if constexpr (is_vec_v<no_ref>) {
+#ifdef __SYCL_DEVICE_ONLY__
+    return static_cast<typename no_ref::vector_t>(x);
+#else
+#if 1
+    // No idea why this is necessary, most likely ABI bug-compatibility with
+    // previous release.
+    using MatchingVec = SelectMatchingOpenCLType_t<no_ref>;
+    static_assert(is_vec_v<MatchingVec>);
+    return x.template as<MatchingVec>();
+#else
+    return std::forward<T>(x);
+#endif
+#endif
+  } else if constexpr (is_boolean_v<no_ref>) {
+#ifdef __SYCL_DEVICE_ONLY__
+    if constexpr (std::is_same_v<Boolean<1>, no_ref>) {
+      // Or should it be "int"?
+      return std::forward<T>(x);
+    } else {
+      return static_cast<typename no_ref::vector_t>(x);
+    }
+#else
+    return std::forward<T>(x);
+#endif
+  } else if constexpr (std::is_same_v<no_ref, std::byte>) {
+    return static_cast<uint8_t>(x);
   } else {
     using OpenCLType = ConvertToOpenCLType_t<no_ref>;
     return convertDataToType<T, OpenCLType>(std::forward<T>(x));
