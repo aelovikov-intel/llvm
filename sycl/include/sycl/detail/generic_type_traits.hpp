@@ -465,7 +465,6 @@ template <typename T>
 using select_cl_scalar_complex_or_T_t =
     typename select_cl_scalar_complex_or_T<T>::type;
 
-// TODO: That should probably be moved outside of "type_traits".
 template <typename T> auto convertToOpenCLType(T &&x) {
   using no_ref = std::remove_reference_t<T>;
   if constexpr (is_multi_ptr_v<no_ref>) {
@@ -491,7 +490,7 @@ template <typename T> auto convertToOpenCLType(T &&x) {
 #ifdef __SYCL_DEVICE_ONLY__
     return static_cast<typename no_ref::vector_t>(x);
 #else
-#if 1
+#if !defined(__INTEL_PREVIEW_BREAKING_CHANGES)
     // No idea why this is necessary, most likely ABI bug-compatibility with
     // previous release.
     using ElemTy = typename no_ref::element_type;
