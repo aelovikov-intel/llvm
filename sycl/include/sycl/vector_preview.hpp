@@ -329,11 +329,14 @@ public:
   constexpr vec(const vec &Rhs) = default;
   constexpr vec(vec &&Rhs) = default;
 
+private:
+  // Implementation detail for the next public ctor.
   template <size_t... Is>
   constexpr vec(const std::array<DataT, NumElements> &Arr,
                 std::index_sequence<Is...>)
-      : m_Data{([&](DataT v) constexpr { return v; })(Arr[Is])...} {}
+      : m_Data{Arr[Is]...} {}
 
+public:
   explicit constexpr vec(const DataT &arg)
       : vec{detail::RepeatValue<NumElements>(arg),
             std::make_index_sequence<NumElements>()} {}
