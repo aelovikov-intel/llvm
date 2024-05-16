@@ -126,19 +126,17 @@ class RoundedRangeKernelWithKH;
 
 // OpenCL data type to convert to.
 template <typename T>
-using element_type_for_vector_t = typename std::conditional_t<
+// clang-format off
+using element_type_for_vector_t = typename map_type<
+    T,
 #if (!defined(_HAS_STD_BYTE) || _HAS_STD_BYTE != 0)
-    std::is_same_v<T, std::byte>, std::uint8_t,
-#else
-    false, T,
+    std::byte, /*->*/ std::uint8_t,
 #endif
-    typename std::conditional_t<
-        std::is_same_v<T, bool>, std::int8_t,
-        typename std::conditional_t<
-            std::is_same_v<T, sycl::half>, sycl::detail::half_impl::StorageT,
-            typename std::conditional_t<
-                std::is_same_v<T, sycl::ext::oneapi::bfloat16>,
-                sycl::ext::oneapi::detail::Bfloat16StorageT, T>>>>;
+    bool, /*->*/ std::int8_t,
+    sycl::half, /*->*/ sycl::detail::half_impl::StorageT,
+    sycl::ext::oneapi::bfloat16, /*->*/ sycl::ext::oneapi::detail::Bfloat16StorageT,
+    T, /*->*/ T>::type;
+// clang-format on
 } // namespace detail
 
 ///////////////////////// class sycl::vec /////////////////////////
