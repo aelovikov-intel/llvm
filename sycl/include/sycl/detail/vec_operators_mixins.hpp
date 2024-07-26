@@ -394,36 +394,40 @@ struct PrefixPostfixIncDecMixin<Self, DataT,
 };
 
 template <typename Self, typename DataT, int N, typename = void>
-struct SwizzleByteShiftsMixin {};
+struct ByteShiftsNoAssignMixin {};
+template <typename Self, typename DataT, int N, typename = void>
+struct ByteShiftsMixin {};
+#if (!defined(_HAS_STD_BYTE) || _HAS_STD_BYTE != 0)
 template <typename Self, typename DataT, int N>
-struct SwizzleByteShiftsMixin<
+struct ByteShiftsNoAssignMixin<
     Self, DataT, N, std::enable_if_t<std::is_same_v<std::byte, DataT>>> {
   friend auto operator<<(const Self &lhs, int shift) {
-    vec<DataT, N> tmp = lhs;
-    return tmp << shift;
+    vec<DataT, N> tmp;
+    for (int i = 0; i < N; ++i)
+      tmp[i] = lhs[i] << shift;
+    return tmp;
   }
   friend auto operator>>(const Self &lhs, int shift) {
-    vec<DataT, N> tmp = lhs;
-    return tmp >> shift;
+    vec<DataT, N> tmp;
+    for (int i = 0; i < N; ++i)
+      tmp[i] = lhs[i] >> shift;
+    return tmp;
   }
 };
-template <typename Self, typename DataT, int N, typename = void>
-struct AssignableSwizzleByteShiftsMixin {};
 template <typename Self, typename DataT, int N>
-struct AssignableSwizzleByteShiftsMixin<
-    Self, DataT, N, std::enable_if_t<std::is_same_v<std::byte, DataT>>>
-    : public SwizzleByteShiftsMixin<Self, DataT, N> {
+struct ByteShiftsMixin<Self, DataT, N,
+                       std::enable_if_t<std::is_same_v<std::byte, DataT>>>
+    : public ByteShiftsNoAssignMixin<Self, DataT, N> {
   friend const Self &operator<<=(const Self &lhs, int shift) {
-    vec<DataT, N> tmp = lhs;
-    lhs = tmp << shift;
+    lhs = lhs << shift;
     return lhs;
   }
   friend const Self &operator>>=(const Self &lhs, int shift) {
-    vec<DataT, N> tmp = lhs;
-    lhs = tmp >> shift;
+    lhs = lhs >> shift;
     return lhs;
   }
 };
+#endif
 } // namespace detail
 } // namespace _V1
 } // namespace sycl
