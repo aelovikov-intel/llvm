@@ -266,7 +266,9 @@ class __SYCL_EBO vec
                                                    DataT, NumElements>,
       public detail::NamedSwizzlesMixInBoth<vec<DataT, NumElements>,
                                             NumElements>,
-      public detail::PrefixPostfixIncDecMixin<vec<DataT, NumElements>, DataT> {
+      public detail::PrefixPostfixIncDecMixin<vec<DataT, NumElements>, DataT>,
+      public detail::ByteShiftsMixin<vec<DataT, NumElements>, DataT,
+                                     NumElements> {
 
   static_assert(NumElements == 1 || NumElements == 2 || NumElements == 3 ||
                     NumElements == 4 || NumElements == 8 || NumElements == 16,

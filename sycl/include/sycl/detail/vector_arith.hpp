@@ -280,40 +280,6 @@ protected:
   using vec_t = vec<DataT, NumElements>;
   template <typename T> using vec_data = vec_helper<T>;
 
-  // Special <<, >> operators for std::byte.
-  // std::byte is not an arithmetic type and it only supports the following
-  // overloads of >> and << operators.
-  //
-  // 1 template <class IntegerType>
-  //   constexpr std::byte operator<<( std::byte b, IntegerType shift )
-  //   noexcept;
-  friend vec_t operator<<(const vec_t &Lhs, int shift) {
-    vec_t Ret;
-    for (size_t I = 0; I < NumElements; ++I) {
-      Ret[I] = Lhs[I] << shift;
-    }
-    return Ret;
-  }
-  friend vec_t &operator<<=(vec_t &Lhs, int shift) {
-    Lhs = Lhs << shift;
-    return Lhs;
-  }
-
-  // 2 template <class IntegerType>
-  //   constexpr std::byte operator>>( std::byte b, IntegerType shift )
-  //   noexcept;
-  friend vec_t operator>>(const vec_t &Lhs, int shift) {
-    vec_t Ret;
-    for (size_t I = 0; I < NumElements; ++I) {
-      Ret[I] = Lhs[I] >> shift;
-    }
-    return Ret;
-  }
-  friend vec_t &operator>>=(vec_t &Lhs, int shift) {
-    Lhs = Lhs >> shift;
-    return Lhs;
-  }
-
   __SYCL_BINOP(|, |=, false, true)
   __SYCL_BINOP(&, &=, false, true)
   __SYCL_BINOP(^, ^=, false, true)
