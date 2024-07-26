@@ -749,7 +749,7 @@ namespace detail {
 // old implementation didn't do that and we want to have that fix separately
 // from other swizzle changes. To be addressed soon.
 
-#if 0
+#if 1
 #define __SYCL_SWIZZLE_MIXIN_METHOD_NON_CONST(COND, NAME, ...)                 \
   template <int N = NumElements, typename Self_ = Self>                        \
   std::enable_if_t<                                                            \
