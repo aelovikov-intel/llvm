@@ -79,18 +79,6 @@ template <typename VecT> class VecAccess;
                                                         const vec_t & Rhs) {   \
     return vec_t(Lhs) BINOP Rhs;                                               \
   }                                                                            \
-  template <typename T = DataT>                                                \
-  friend std::enable_if_t<(COND), vec_t> &operator OPASSIGN(                   \
-      vec_t & Lhs, const vec_t & Rhs) {                                        \
-    Lhs = Lhs BINOP Rhs;                                                       \
-    return Lhs;                                                                \
-  }                                                                            \
-  template <int Num = NumElements, typename T = DataT>                         \
-  friend std::enable_if_t<(Num != 1) && (COND), vec_t &> operator OPASSIGN(    \
-      vec_t & Lhs, const DataT & Rhs) {                                        \
-    Lhs = Lhs BINOP vec_t(Rhs);                                                \
-    return Lhs;                                                                \
-  }
 
 /****************************************************************
  *                       vec_arith_common

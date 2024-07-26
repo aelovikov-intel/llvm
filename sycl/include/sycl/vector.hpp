@@ -268,7 +268,11 @@ class __SYCL_EBO vec
                                             NumElements>,
       public detail::PrefixPostfixIncDecMixin<vec<DataT, NumElements>, DataT>,
       public detail::ByteShiftsMixin<vec<DataT, NumElements>, DataT,
-                                     NumElements> {
+                                     NumElements>,
+      public detail::NonTemplateBinaryOpAssignOpsMixin<
+          vec<DataT, NumElements>, vec<DataT, NumElements>, DataT>,
+      public detail::NonTemplateBinaryOpAssignOpsMixin<vec<DataT, NumElements>,
+                                                       DataT, DataT> {
 
   static_assert(NumElements == 1 || NumElements == 2 || NumElements == 3 ||
                     NumElements == 4 || NumElements == 8 || NumElements == 16,
