@@ -169,7 +169,15 @@ class Swizzle
           PrefixPostfixIncDecMixin<Swizzle<VecT, Indexes...>,
                                    typename VecT::element_type>,
           PrefixIncDecMixin<Swizzle<VecT, Indexes...>,
-                            typename VecT::element_type>> {
+                            typename VecT::element_type>>,
+      public std::conditional_t<
+          is_assignable_swizzle<VecT, Indexes...>,
+          AssignableSwizzleByteShiftsMixin<Swizzle<VecT, Indexes...>,
+                                           typename VecT::element_type,
+                                           sizeof...(Indexes)>,
+          SwizzleByteShiftsMixin<Swizzle<VecT, Indexes...>,
+                                 typename VecT::element_type,
+                                 sizeof...(Indexes)>> {
   using DataT = typename VecT::element_type;
   static constexpr int NumElements = sizeof...(Indexes);
   using ResultVec = vec<DataT, NumElements>;

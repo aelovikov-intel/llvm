@@ -392,6 +392,38 @@ struct PrefixPostfixIncDecMixin<Self, DataT,
     return tmp;
   }
 };
+
+template <typename Self, typename DataT, int N, typename = void>
+struct SwizzleByteShiftsMixin {};
+template <typename Self, typename DataT, int N>
+struct SwizzleByteShiftsMixin<
+    Self, DataT, N, std::enable_if_t<std::is_same_v<std::byte, DataT>>> {
+  friend auto operator<<(const Self &lhs, int shift) {
+    vec<DataT, N> tmp = lhs;
+    return tmp << shift;
+  }
+  friend auto operator>>(const Self &lhs, int shift) {
+    vec<DataT, N> tmp = lhs;
+    return tmp >> shift;
+  }
+};
+template <typename Self, typename DataT, int N, typename = void>
+struct AssignableSwizzleByteShiftsMixin {};
+template <typename Self, typename DataT, int N>
+struct AssignableSwizzleByteShiftsMixin<
+    Self, DataT, N, std::enable_if_t<std::is_same_v<std::byte, DataT>>>
+    : public SwizzleByteShiftsMixin<Self, DataT, N> {
+  friend const Self &operator<<=(const Self &lhs, int shift) {
+    vec<DataT, N> tmp = lhs;
+    lhs = tmp << shift;
+    return lhs;
+  }
+  friend const Self &operator>>=(const Self &lhs, int shift) {
+    vec<DataT, N> tmp = lhs;
+    lhs = tmp >> shift;
+    return lhs;
+  }
+};
 } // namespace detail
 } // namespace _V1
 } // namespace sycl
