@@ -178,7 +178,7 @@ struct SwizzleTemplateBinaryOpAssignMixin {};
   template <typename Lhs, typename Rhs, typename DataT>                        \
   struct NonTemplateBinaryOpAssignMixin<                                       \
       Lhs, Rhs, DataT, OP, std::enable_if_t<is_op_available<OP, DataT>>> {     \
-    friend const Lhs &operator OPASSIGN(const Lhs & lhs, const Rhs & rhs) {    \
+    friend Lhs &operator OPASSIGN(Lhs & lhs, const Rhs & rhs) {    \
       lhs = OP{}(lhs, rhs);                                                    \
       return lhs;                                                              \
     }                                                                          \
@@ -353,9 +353,9 @@ template <typename Self, typename VecT, int N>
 struct SwizzleOpAssignMixins
     : public SwizzleBaseMixins<Self, VecT, N>,
       public NonTemplateBinaryOpAssignOpsMixin<
-          Self, typename VecT::element_type, typename VecT::element_type>,
+          const Self, typename VecT::element_type, typename VecT::element_type>,
       public NonTemplateBinaryOpAssignOpsMixin<
-          Self, vec<typename VecT::element_type, N>,
+          const Self, vec<typename VecT::element_type, N>,
           typename VecT::element_type>,
       public SwizzleTemplateBinaryOpAssignOpsMixin<
           Self, VecT, typename VecT::element_type, N> {};
