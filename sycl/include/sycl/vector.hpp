@@ -265,7 +265,8 @@ class __SYCL_EBO vec
       public detail::ScalarConversionOperatorMixIn<vec<DataT, NumElements>,
                                                    DataT, NumElements>,
       public detail::NamedSwizzlesMixInBoth<vec<DataT, NumElements>,
-                                            NumElements> {
+                                            NumElements>,
+      public detail::PrefixPostfixIncDecMixin<vec<DataT, NumElements>, DataT> {
 
   static_assert(NumElements == 1 || NumElements == 2 || NumElements == 3 ||
                     NumElements == 4 || NumElements == 8 || NumElements == 16,

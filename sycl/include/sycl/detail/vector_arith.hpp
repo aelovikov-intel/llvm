@@ -171,27 +171,6 @@ protected:
     return Ret;
   }
 
-// Unary operations on sycl::vec
-// FIXME: Don't allow Unary operators on vec<bool> after
-// https://github.com/KhronosGroup/SYCL-CTS/issues/896 gets fixed.
-#ifdef __SYCL_UOP
-#error "Undefine __SYCL_UOP macro"
-#endif
-#define __SYCL_UOP(UOP, OPASSIGN)                                              \
-  friend vec_t &operator UOP(vec_t & Rhs) {                                    \
-    Rhs OPASSIGN DataT{1};                                                     \
-    return Rhs;                                                                \
-  }                                                                            \
-  friend vec_t operator UOP(vec_t &Lhs, int) {                                 \
-    vec_t Ret(Lhs);                                                            \
-    Lhs OPASSIGN DataT{1};                                                     \
-    return Ret;                                                                \
-  }
-
-  __SYCL_UOP(++, +=)
-  __SYCL_UOP(--, -=)
-#undef __SYCL_UOP
-
   // The logical operations on scalar types results in 0/1, while for vec<>,
   // logical operations should result in 0 and -1 (similar to OpenCL vectors).
   // That's why, for vec<DataT, 1>, we need to invert the result of the logical
