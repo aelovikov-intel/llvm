@@ -32,255 +32,208 @@ template <size_t X, size_t... Xs> struct AllNonZero<X, Xs...> {
 
 struct properties_tag {};
 
-struct work_group_size_key
-    : detail::compile_time_property_key<detail::PropKind::WorkGroupSize> {
-  template <size_t... Dims>
-  using value_t = property_value<work_group_size_key,
-                                 std::integral_constant<size_t, Dims>...>;
-};
+template <size_t... Dims>
+struct work_group_size_property
+    : new_properties::detail::property_base<work_group_size_property<Dims...>,
+                                            struct work_group_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::work_group_size_property"};
 
-struct work_group_size_hint_key
-    : detail::compile_time_property_key<detail::PropKind::WorkGroupSizeHint> {
-  template <size_t... Dims>
-  using value_t = property_value<work_group_size_hint_key,
-                                 std::integral_constant<size_t, Dims>...>;
-};
-
-struct sub_group_size_key
-    : detail::compile_time_property_key<detail::PropKind::SubGroupSize> {
-  template <uint32_t Size>
-  using value_t = property_value<sub_group_size_key,
-                                 std::integral_constant<uint32_t, Size>>;
-};
-
-struct device_has_key
-    : detail::compile_time_property_key<detail::PropKind::DeviceHas> {
-  template <aspect... Aspects>
-  using value_t = property_value<device_has_key,
-                                 std::integral_constant<aspect, Aspects>...>;
-};
-
-struct nd_range_kernel_key {
-  template <int Dims>
-  using value_t =
-      property_value<nd_range_kernel_key, std::integral_constant<int, Dims>>;
-};
-
-struct single_task_kernel_key {
-  using value_t = property_value<single_task_kernel_key>;
-};
-
-struct max_work_group_size_key
-    : detail::compile_time_property_key<detail::PropKind::MaxWorkGroupSize> {
-  template <size_t... Dims>
-  using value_t = property_value<max_work_group_size_key,
-                                 std::integral_constant<size_t, Dims>...>;
-};
-
-struct max_linear_work_group_size_key
-    : detail::compile_time_property_key<
-          detail::PropKind::MaxLinearWorkGroupSize> {
-  template <size_t Size>
-  using value_t = property_value<max_linear_work_group_size_key,
-                                 std::integral_constant<size_t, Size>>;
-};
-
-template <size_t Dim0, size_t... Dims>
-struct property_value<work_group_size_key, std::integral_constant<size_t, Dim0>,
-                      std::integral_constant<size_t, Dims>...> {
   static_assert(
-      sizeof...(Dims) + 1 <= 3,
+      sizeof...(Dims) >= 1 && sizeof...(Dims) <= 3,
       "work_group_size property currently only supports up to three values.");
-  static_assert(detail::AllNonZero<Dim0, Dims...>::value,
+  static_assert((((Dims != 0) && ...)),
                 "work_group_size property must only contain non-zero values.");
 
-  using key_t = work_group_size_key;
-
   constexpr size_t operator[](int Dim) const {
-    return std::array<size_t, sizeof...(Dims) + 1>{Dim0, Dims...}[Dim];
+    return std::array{Dims...}[Dim];
   }
-};
 
-template <size_t Dim0, size_t... Dims>
-struct property_value<work_group_size_hint_key,
-                      std::integral_constant<size_t, Dim0>,
-                      std::integral_constant<size_t, Dims>...> {
-  static_assert(sizeof...(Dims) + 1 <= 3,
-                "work_group_size_hint property currently "
-                "only supports up to three values.");
+  static constexpr const char *ir_attribute_name = "sycl-work-group-size";
+  static constexpr const char *ir_attribute_value = SizeListToStr<Dims...>::value;
+};
+template <size_t... Dims>
+inline constexpr work_group_size_property<Dims...> work_group_size;
+
+
+template <size_t... Dims>
+struct work_group_size_hint_property
+    : new_properties::detail::property_base<
+          work_group_size_hint_property<Dims...>,
+          struct work_group_size_hint_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::work_group_size_hint_property"};
+
+  static_assert(sizeof...(Dims) >= 1 && sizeof...(Dims) <= 3,
+                "work_group_size_hint property currently only supports up to "
+                "three values.");
   static_assert(
-      detail::AllNonZero<Dim0, Dims...>::value,
+      (((Dims != 0) && ...)),
       "work_group_size_hint property must only contain non-zero values.");
 
-  using key_t = work_group_size_hint_key;
-
   constexpr size_t operator[](int Dim) const {
-    return std::array<size_t, sizeof...(Dims) + 1>{Dim0, Dims...}[Dim];
+    return std::array{Dims...}[Dim];
   }
+
+  static constexpr const char *ir_attribute_name = "sycl-work-group-size-hint";
+  static constexpr const char *ir_attribute_value =
+      SizeListToStr<Dims...>::value;
 };
+template <size_t... Dims>
+inline constexpr work_group_size_hint_property<Dims...> work_group_size_hint;
 
 template <uint32_t Size>
-struct property_value<sub_group_size_key,
-                      std::integral_constant<uint32_t, Size>> {
+struct sub_group_size_property
+    : new_properties::detail::property_base<sub_group_size_property<Size>,
+                                            struct sub_group_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::sub_group_size_property"};
+
   static_assert(Size != 0,
                 "sub_group_size_key property must contain a non-zero value.");
 
-  using key_t = sub_group_size_key;
+  // TODO: Is this still needed?
   using value_t = std::integral_constant<uint32_t, Size>;
+
   static constexpr uint32_t value = Size;
+
+  static constexpr const char *ir_attribute_name = "sycl-sub-group-size";
+  static constexpr uint32_t ir_attribute_value = Size;
 };
+template <uint32_t Size>
+inline constexpr sub_group_size_property<Size> sub_group_size;
 
 template <aspect... Aspects>
-struct property_value<device_has_key,
-                      std::integral_constant<aspect, Aspects>...> {
-  using key_t = device_has_key;
+struct device_has_property
+    : new_properties::detail::property_base<device_has_property<Aspects...>,
+                                            struct device_has_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::device_has_property"};
+
   static constexpr std::array<aspect, sizeof...(Aspects)> value{Aspects...};
+
+  static constexpr const char *ir_attribute_name = "sycl-device-has";
+  static constexpr const char *ir_attribute_value =
+      SizeListToStr<static_cast<size_t>(Aspects)...>::value;
 };
+template <aspect... Aspects>
+inline constexpr device_has_property<Aspects...> device_has;
 
 template <int Dims>
-struct property_value<nd_range_kernel_key, std::integral_constant<int, Dims>> {
+struct nd_range_kernel_property
+    : new_properties::detail::property_base<nd_range_kernel_property<Dims>,
+                                            struct nd_range_kernel_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::nd_range_kernel_property"};
+
   static_assert(
       Dims >= 1 && Dims <= 3,
       "nd_range_kernel_key property must use dimension of 1, 2 or 3.");
 
-  using key_t = nd_range_kernel_key;
-  using value_t = int;
   static constexpr int dimensions = Dims;
-};
 
-template <> struct property_value<single_task_kernel_key> {
-  using key_t = single_task_kernel_key;
+  static constexpr const char *ir_attribute_name = "sycl-nd-range-kernel";
+  static constexpr int ir_attribute_value = Dims;
 };
+template <int Dims>
+inline constexpr nd_range_kernel_property<Dims> nd_range_kernel;
 
-template <size_t Dim0, size_t... Dims>
-struct property_value<max_work_group_size_key,
-                      std::integral_constant<size_t, Dim0>,
-                      std::integral_constant<size_t, Dims>...> {
-  static_assert(sizeof...(Dims) + 1 <= 3,
-                "max_work_group_size property currently "
-                "only supports up to three values.");
+  // TODO: Add single_task_kernel_key for compatibility?
+struct single_task_kernel_property
+    : new_properties::detail::property_base<single_task_kernel_property> {
+  static constexpr const char *ir_attribute_name = "sycl-single-task-kernel";
+  static constexpr int ir_attribute_value = 0;
+};
+inline constexpr single_task_kernel_property single_task_kernel;
+
+template <size_t... Dims>
+struct max_work_group_size_property : new_properties::detail::property_base<
+                                          max_work_group_size_property<Dims...>,
+                                          struct max_work_group_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::max_work_group_size_property"};
+
   static_assert(
-      detail::AllNonZero<Dim0, Dims...>::value,
-      "max_work_group_size property must only contain non-zero values.");
-
-  using key_t = max_work_group_size_key;
+      sizeof...(Dims) >= 1 && sizeof...(Dims) <= 3,
+      "max_work_group_size property currently only supports up to three values.");
+  static_assert((((Dims != 0) && ...)),
+                "max_work_group_size property must only contain non-zero values.");
 
   constexpr size_t operator[](int Dim) const {
-    return std::array<size_t, sizeof...(Dims) + 1>{Dim0, Dims...}[Dim];
+    return std::array{Dims...}[Dim];
   }
+
+  static constexpr const char *ir_attribute_name = "sycl-max-work-group-size";
+  static constexpr const char *ir_attribute_value = SizeListToStr<Dims...>::value;
 };
-
-template <> struct property_value<max_linear_work_group_size_key> {
-  using key_t = max_linear_work_group_size_key;
-};
-
-template <size_t Dim0, size_t... Dims>
-inline constexpr work_group_size_key::value_t<Dim0, Dims...> work_group_size;
-
-template <size_t Dim0, size_t... Dims>
-inline constexpr work_group_size_hint_key::value_t<Dim0, Dims...>
-    work_group_size_hint;
-
-template <uint32_t Size>
-inline constexpr sub_group_size_key::value_t<Size> sub_group_size;
-
-template <aspect... Aspects>
-inline constexpr device_has_key::value_t<Aspects...> device_has;
-
-template <int Dims>
-inline constexpr nd_range_kernel_key::value_t<Dims> nd_range_kernel;
-
-inline constexpr single_task_kernel_key::value_t single_task_kernel;
-
-template <size_t Dim0, size_t... Dims>
-inline constexpr max_work_group_size_key::value_t<Dim0, Dims...>
-    max_work_group_size;
+template <size_t... Dims>
+inline constexpr max_work_group_size_property<Dims...> max_work_group_size;
 
 template <size_t Size>
-inline constexpr max_linear_work_group_size_key::value_t<Size>
+struct max_linear_work_group_size_property
+    : new_properties::detail::property_base<
+          max_linear_work_group_size_property<Size>,
+          struct max_linear_work_group_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::max_linear_work_group_size_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-max-linear-work-group-size";
+  static constexpr size_t ir_attribute_value = Size;
+};
+template <size_t Size>
+inline constexpr max_linear_work_group_size_property<Size>
     max_linear_work_group_size;
 
-struct work_group_progress_key
-    : detail::compile_time_property_key<detail::PropKind::WorkGroupProgress> {
-  template <forward_progress_guarantee Guarantee,
-            execution_scope CoordinationScope>
-  using value_t = property_value<
-      work_group_progress_key,
-      std::integral_constant<forward_progress_guarantee, Guarantee>,
-      std::integral_constant<execution_scope, CoordinationScope>>;
-};
-
-struct sub_group_progress_key
-    : detail::compile_time_property_key<detail::PropKind::SubGroupProgress> {
-  template <forward_progress_guarantee Guarantee,
-            execution_scope CoordinationScope>
-  using value_t = property_value<
-      sub_group_progress_key,
-      std::integral_constant<forward_progress_guarantee, Guarantee>,
-      std::integral_constant<execution_scope, CoordinationScope>>;
-};
-
-struct work_item_progress_key
-    : detail::compile_time_property_key<detail::PropKind::WorkItemProgress> {
-  template <forward_progress_guarantee Guarantee,
-            execution_scope CoordinationScope>
-  using value_t = property_value<
-      work_item_progress_key,
-      std::integral_constant<forward_progress_guarantee, Guarantee>,
-      std::integral_constant<execution_scope, CoordinationScope>>;
-};
-
 template <forward_progress_guarantee Guarantee,
           execution_scope CoordinationScope>
-struct property_value<
-    work_group_progress_key,
-    std::integral_constant<forward_progress_guarantee, Guarantee>,
-    std::integral_constant<execution_scope, CoordinationScope>> {
-  using key_t = work_group_progress_key;
+struct work_group_progress_property
+    : new_properties::detail::property_base<
+          work_group_progress_property<Guarantee, CoordinationScope>,
+          struct work_group_progress_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::work_group_progress_property"};
+
   static constexpr forward_progress_guarantee guarantee = Guarantee;
   static constexpr execution_scope coordinationScope = CoordinationScope;
 };
-
 template <forward_progress_guarantee Guarantee,
           execution_scope CoordinationScope>
-struct property_value<
-    sub_group_progress_key,
-    std::integral_constant<forward_progress_guarantee, Guarantee>,
-    std::integral_constant<execution_scope, CoordinationScope>> {
-  using key_t = work_group_progress_key;
-  static constexpr forward_progress_guarantee guarantee = Guarantee;
-  static constexpr execution_scope coordinationScope = CoordinationScope;
-};
-
-template <forward_progress_guarantee Guarantee,
-          execution_scope CoordinationScope>
-struct property_value<
-    work_item_progress_key,
-    std::integral_constant<forward_progress_guarantee, Guarantee>,
-    std::integral_constant<execution_scope, CoordinationScope>> {
-  using key_t = work_group_progress_key;
-  static constexpr forward_progress_guarantee guarantee = Guarantee;
-  static constexpr execution_scope coordinationScope = CoordinationScope;
-};
-
-template <forward_progress_guarantee Guarantee,
-          execution_scope CoordinationScope>
-inline constexpr work_group_progress_key::value_t<Guarantee, CoordinationScope>
+inline constexpr work_group_progress_property<Guarantee, CoordinationScope>
     work_group_progress;
 
 template <forward_progress_guarantee Guarantee,
           execution_scope CoordinationScope>
-inline constexpr sub_group_progress_key::value_t<Guarantee, CoordinationScope>
+struct sub_group_progress_property
+    : new_properties::detail::property_base<
+          sub_group_progress_property<Guarantee, CoordinationScope>,
+          struct sub_group_progress_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::sub_group_progress_property"};
+
+  static constexpr forward_progress_guarantee guarantee = Guarantee;
+  static constexpr execution_scope coordinationScope = CoordinationScope;
+};
+template <forward_progress_guarantee Guarantee,
+          execution_scope CoordinationScope>
+inline constexpr sub_group_progress_property<Guarantee, CoordinationScope>
     sub_group_progress;
 
 template <forward_progress_guarantee Guarantee,
           execution_scope CoordinationScope>
-inline constexpr work_item_progress_key::value_t<Guarantee, CoordinationScope>
-    work_item_progress;
+struct work_item_progress_property
+    : new_properties::detail::property_base<
+          work_item_progress_property<Guarantee, CoordinationScope>,
+          struct work_item_progress_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::work_item_progress_property"};
 
-template <> struct is_property_key<work_group_progress_key> : std::true_type {};
-template <> struct is_property_key<sub_group_progress_key> : std::true_type {};
-template <> struct is_property_key<work_item_progress_key> : std::true_type {};
+  static constexpr forward_progress_guarantee guarantee = Guarantee;
+  static constexpr execution_scope coordinationScope = CoordinationScope;
+};
+template <forward_progress_guarantee Guarantee,
+          execution_scope CoordinationScope>
+inline constexpr work_item_progress_property<Guarantee, CoordinationScope>
+    work_item_progress;
 
 namespace detail {
 
@@ -296,47 +249,6 @@ struct HasCompileTimeEffect<sub_group_size_key::value_t<Size>>
 template <sycl::aspect... Aspects>
 struct HasCompileTimeEffect<device_has_key::value_t<Aspects...>>
     : std::true_type {};
-
-template <size_t Dim0, size_t... Dims>
-struct PropertyMetaInfo<work_group_size_key::value_t<Dim0, Dims...>> {
-  static constexpr const char *name = "sycl-work-group-size";
-  static constexpr const char *value = SizeListToStr<Dim0, Dims...>::value;
-};
-template <size_t Dim0, size_t... Dims>
-struct PropertyMetaInfo<work_group_size_hint_key::value_t<Dim0, Dims...>> {
-  static constexpr const char *name = "sycl-work-group-size-hint";
-  static constexpr const char *value = SizeListToStr<Dim0, Dims...>::value;
-};
-template <uint32_t Size>
-struct PropertyMetaInfo<sub_group_size_key::value_t<Size>> {
-  static constexpr const char *name = "sycl-sub-group-size";
-  static constexpr uint32_t value = Size;
-};
-template <aspect... Aspects>
-struct PropertyMetaInfo<device_has_key::value_t<Aspects...>> {
-  static constexpr const char *name = "sycl-device-has";
-  static constexpr const char *value =
-      SizeListToStr<static_cast<size_t>(Aspects)...>::value;
-};
-template <int Dims>
-struct PropertyMetaInfo<nd_range_kernel_key::value_t<Dims>> {
-  static constexpr const char *name = "sycl-nd-range-kernel";
-  static constexpr int value = Dims;
-};
-template <> struct PropertyMetaInfo<single_task_kernel_key::value_t> {
-  static constexpr const char *name = "sycl-single-task-kernel";
-  static constexpr int value = 0;
-};
-template <size_t Dim0, size_t... Dims>
-struct PropertyMetaInfo<max_work_group_size_key::value_t<Dim0, Dims...>> {
-  static constexpr const char *name = "sycl-max-work-group-size";
-  static constexpr const char *value = SizeListToStr<Dim0, Dims...>::value;
-};
-template <size_t Size>
-struct PropertyMetaInfo<max_linear_work_group_size_key::value_t<Size>> {
-  static constexpr const char *name = "sycl-max-linear-work-group-size";
-  static constexpr size_t value = Size;
-};
 
 template <typename T, typename = void>
 struct HasKernelPropertiesGetMethod : std::false_type {};
