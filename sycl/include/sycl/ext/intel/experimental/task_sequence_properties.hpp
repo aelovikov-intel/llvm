@@ -24,32 +24,37 @@ template <typename PropertyT, typename... Ts>
 using property_value =
     sycl::ext::oneapi::experimental::property_value<PropertyT, Ts...>;
 
-struct balanced_key : oneapi::experimental::detail::compile_time_property_key<
-                          oneapi::experimental::detail::PropKind::Balanced> {
-  using value_t = property_value<balanced_key>;
+struct balanced_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          balanced_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::balanced_property"};
 };
+inline constexpr balanced_property balanced;
 
-struct invocation_capacity_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::InvocationCapacity> {
-  template <unsigned int Size>
-  using value_t = property_value<invocation_capacity_key,
-                                 std::integral_constant<unsigned int, Size>>;
-};
-
-struct response_capacity_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::ResponseCapacity> {
-  template <unsigned int Size>
-  using value_t = property_value<response_capacity_key,
-                                 std::integral_constant<unsigned int, Size>>;
-};
-
-inline constexpr balanced_key::value_t balanced;
 template <unsigned int Size>
-inline constexpr invocation_capacity_key::value_t<Size> invocation_capacity;
+struct invocation_capacity_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          invocation_capacity_property<Size>, struct invocation_capacity_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::invocation_capacity_property"};
+
+  static constexpr auto value = Size;
+};
 template <unsigned int Size>
-inline constexpr response_capacity_key::value_t<Size> response_capacity;
+inline constexpr invocation_capacity_property<Size> invocation_capacity;
+
+template <unsigned int Size>
+struct response_capacity_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          response_capacity_property<Size>, struct response_capacity_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::response_capacity_property"};
+
+  static constexpr auto value = Size;
+};
+template <unsigned int Size>
+inline constexpr response_capacity_property<Size> response_capacity;
 
 } // namespace ext::intel::experimental
 
