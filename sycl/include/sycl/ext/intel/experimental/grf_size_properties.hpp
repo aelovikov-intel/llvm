@@ -18,39 +18,37 @@
 namespace sycl {
 inline namespace _V1 {
 namespace ext::intel::experimental {
-struct grf_size_key : oneapi::experimental::detail::compile_time_property_key<
-                          oneapi::experimental::detail::PropKind::GRFSize> {
-  template <unsigned int Size>
-  using value_t = oneapi::experimental::property_value<
-      grf_size_key, std::integral_constant<unsigned int, Size>>;
-};
-
-struct grf_size_automatic_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::GRFSizeAutomatic> {
-  using value_t = oneapi::experimental::property_value<grf_size_automatic_key>;
-};
-
 template <unsigned int Size>
-inline constexpr grf_size_key::value_t<Size> grf_size;
+struct grf_size_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          grf_size_property<Size>, struct grf_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::grf_size_property"};
 
-inline constexpr grf_size_automatic_key::value_t grf_size_automatic;
+  static_assert(Size == 128 || Size == 256, "Unsupported GRF size");
+  static constexpr const char *ir_attribute_name = "sycl-grf-size";
+  static constexpr unsigned int ir_attribute_value = Size;
+};
+template <unsigned int Size>
+inline constexpr grf_size_property<Size> grf_size;
+
+// TODO: Why not just
+//
+//   inline constexpr auto grf_size_automatic = grf_size<0>;
+//
+struct grf_size_automatic_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          grf_size_automatic_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::grf_size_automatic_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-grf-size";
+  static constexpr unsigned int ir_attribute_value = 0;
+};
+inline constexpr grf_size_automatic_property grf_size_automatic;
 
 } // namespace ext::intel::experimental
 namespace ext::oneapi::experimental::detail {
-template <unsigned int Size>
-struct PropertyMetaInfo<
-    sycl::ext::intel::experimental::grf_size_key::value_t<Size>> {
-  static_assert(Size == 128 || Size == 256, "Unsupported GRF size");
-  static constexpr const char *name = "sycl-grf-size";
-  static constexpr unsigned int value = Size;
-};
-template <>
-struct PropertyMetaInfo<
-    sycl::ext::intel::experimental::grf_size_automatic_key::value_t> {
-  static constexpr const char *name = "sycl-grf-size";
-  static constexpr unsigned int value = 0;
-};
 
 template <typename Properties>
 struct ConflictingProperties<sycl::ext::intel::experimental::grf_size_key,
