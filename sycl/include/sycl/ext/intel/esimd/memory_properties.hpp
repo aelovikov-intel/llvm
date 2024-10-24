@@ -104,55 +104,49 @@ template <int K> inline constexpr alignment_key::value_t<K> alignment;
 /// L2 cache hint property must be used for the old/experimental LSC L3 cache
 /// hints.
 /// L3 cache property is reserved for future devices.
-struct cache_hint_L1_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::ESIMDL1CacheHint> {
-  template <cache_hint Hint>
-  using value_t = ext::oneapi::experimental::property_value<
-      cache_hint_L1_key, std::integral_constant<cache_hint, Hint>>;
-};
-struct cache_hint_L2_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::ESIMDL2CacheHint> {
-  template <cache_hint Hint>
-  using value_t = ext::oneapi::experimental::property_value<
-      cache_hint_L2_key, std::integral_constant<cache_hint, Hint>>;
-};
-struct cache_hint_L3_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::ESIMDL3CacheHint> {
-  template <cache_hint Hint>
-  using value_t = ext::oneapi::experimental::property_value<
-      cache_hint_L3_key, std::integral_constant<cache_hint, Hint>>;
-};
 
 template <cache_hint Hint>
-inline constexpr cache_hint_L1_key::value_t<Hint> cache_hint_L1;
-template <cache_hint Hint>
-inline constexpr cache_hint_L2_key::value_t<Hint> cache_hint_L2;
-template <cache_hint Hint>
-inline constexpr cache_hint_L3_key::value_t<Hint> cache_hint_L3;
+struct cache_hint_L1_property
+    : oneapi::experimental::new_properties::detail::property_base<
+          cache_hint_L1_property<Hint>, struct cache_hint_L1_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::cache_hint_L1_property"};
 
-#if 0
-// TODO: Introduce the 2-parameter cache_hint property after looking
-// for a better name for it. It cannot be 'esimd::cache_hint' because that
-// may conflict with the enum name 'experimental::esimd::cache_hint' when
-// both namespaces (esimd and experimental::esimd) are imported with 'using'
-// statement. 
-// Naming alternatives: 'esimd::esimd_cache_hint, esimd::cache_hint_L,
-// esimd::cache_hint_property'.
-template <cache_level Level, cache_hint Hint>
-inline constexpr std::conditional_t<
-    Level == cache_level::L1, cache_hint_L1_key::value_t<Hint>,
-    std::conditional_t<Level == cache_level::L2,
-                       cache_hint_L2_key::value_t<Hint>,
-                       cache_hint_L3_key::value_t<Hint>>>
-    cache_hint; // Get a non-conflicting name
-#endif
+  static constexpr cache_level level = cache_level::L1;
+  static constexpr cache_hint hint = Hint;
+};
+template <cache_hint Hint>
+inline constexpr cache_hint_L1_property<Hint> cache_hint_L1;
 
-using default_cache_hint_L1 = cache_hint_L1_key::value_t<cache_hint::none>;
-using default_cache_hint_L2 = cache_hint_L2_key::value_t<cache_hint::none>;
-using default_cache_hint_L3 = cache_hint_L3_key::value_t<cache_hint::none>;
+template <cache_hint Hint>
+struct cache_hint_L2_property
+    : oneapi::experimental::new_properties::detail::property_base<
+          cache_hint_L2_property<Hint>, struct cache_hint_L2_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::cache_hint_L2_property"};
+
+  static constexpr cache_level level = cache_level::L2;
+  static constexpr cache_hint hint = Hint;
+};
+template <cache_hint Hint>
+inline constexpr cache_hint_L2_property<Hint> cache_hint_L2;
+
+template <cache_hint Hint>
+struct cache_hint_L3_property
+    : oneapi::experimental::new_properties::detail::property_base<
+          cache_hint_L3_property<Hint>, struct cache_hint_L3_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::cache_hint_L3_property"};
+
+  static constexpr cache_level level = cache_level::L3;
+  static constexpr cache_hint hint = Hint;
+};
+template <cache_hint Hint>
+inline constexpr cache_hint_L3_property<Hint> cache_hint_L3;
+
+using default_cache_hint_L1 = cache_hint_L1_property<cache_hint::none>;
+using default_cache_hint_L2 = cache_hint_L2_property<cache_hint::none>;
+using default_cache_hint_L3 = cache_hint_L3_property<cache_hint::none>;
 
 namespace detail {
 
