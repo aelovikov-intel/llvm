@@ -17,12 +17,14 @@ namespace sycl {
 inline namespace _V1 {
 namespace ext::oneapi::experimental {
 
-struct use_root_sync_key
-    : detail::compile_time_property_key<detail::PropKind::UseRootSync> {
-  using value_t = property_value<use_root_sync_key>;
+struct use_root_sync_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          use_root_sync_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::use_root_sync_property"};
 };
 
-inline constexpr use_root_sync_key::value_t use_root_sync;
+inline constexpr use_root_sync_property use_root_sync;
 
 } // namespace ext::oneapi::experimental
 } // namespace _V1

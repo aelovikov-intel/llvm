@@ -85,17 +85,22 @@ constexpr fp_mode setDefaultValuesIfNeeded(fp_mode mode) {
 }
 } // namespace detail
 
-struct fp_control_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::FloatingPointControls> {
-  template <fp_mode option>
-  using value_t = ext::oneapi::experimental::property_value<
-      fp_control_key, std::integral_constant<fp_mode, option>>;
-};
-
 template <fp_mode option>
-inline constexpr fp_control_key::value_t<option> fp_control;
+struct fp_control_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          fp_control_property<option>, struct fp_control_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::fp_control_property"};
 
+  static_assert(detail::checkMutuallyExclusive(option),
+                "Mutually exclusive fp modes are specified for the kernel.");
+  static constexpr const char *ir_attribute_name =
+      "sycl-floating-point-control";
+  static constexpr intel::experimental::fp_mode ir_attribute_value =
+      detail::setDefaultValuesIfNeeded(option);
+};
+template <fp_mode option>
+inline constexpr fp_control_property<option> fp_control;
 } // namespace ext::intel::experimental
 
 namespace ext::oneapi::experimental {
@@ -105,17 +110,6 @@ struct is_property_key_of<
     intel::experimental::kernel_attribute<T, PropertyListT>> : std::true_type {
 };
 
-namespace detail {
-template <intel::experimental::fp_mode FPMode>
-struct PropertyMetaInfo<intel::experimental::fp_control_key::value_t<FPMode>> {
-  static_assert(intel::experimental::detail::checkMutuallyExclusive(FPMode),
-                "Mutually exclusive fp modes are specified for the kernel.");
-  static constexpr const char *name = "sycl-floating-point-control";
-  static constexpr intel::experimental::fp_mode value =
-      intel::experimental::detail::setDefaultValuesIfNeeded(FPMode);
-};
-
-} // namespace detail
 } // namespace ext::oneapi::experimental
 } // namespace _V1
 } // namespace sycl

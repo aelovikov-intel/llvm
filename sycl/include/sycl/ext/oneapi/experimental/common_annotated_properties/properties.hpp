@@ -66,13 +66,19 @@ struct propagateToPtrAnnotation<property_value<PropKeyT, PropValuesTs...>>
 //===----------------------------------------------------------------------===//
 //        Common properties of annotated_arg/annotated_ptr
 //===----------------------------------------------------------------------===//
-struct alignment_key
-    : detail::compile_time_property_key<detail::PropKind::Alignment> {
-  template <int K>
-  using value_t = property_value<alignment_key, std::integral_constant<int, K>>;
+template <int K>
+struct alignment_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          alignment_property<K>, struct alignment_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::alignment_property"};
+
+  static constexpr auto value = K;
+  static constexpr const char *ir_attribute_name = "sycl-alignment";
+  static constexpr int ir_attribute_value = K;
 };
 
-template <int K> inline constexpr alignment_key::value_t<K> alignment;
+template <int K> inline constexpr alignment_property<K> alignment;
 
 template <typename T, int W>
 struct is_valid_property<T, alignment_key::value_t<W>>
@@ -87,14 +93,6 @@ struct is_property_key_of<alignment_key, annotated_arg<T, PropertyListT>>
     : std::true_type {};
 
 template <> struct propagateToPtrAnnotation<alignment_key> : std::true_type {};
-
-namespace detail {
-template <int N> struct PropertyMetaInfo<alignment_key::value_t<N>> {
-  static constexpr const char *name = "sycl-alignment";
-  static constexpr int value = N;
-};
-
-} // namespace detail
 
 } // namespace experimental
 } // namespace oneapi

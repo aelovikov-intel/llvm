@@ -24,21 +24,21 @@ namespace experimental {
 
 template <typename T, typename PropertyListT> class annotated_ptr;
 
-struct usm_kind_key
-    : detail::compile_time_property_key<detail::PropKind::UsmKind> {
-  template <sycl::usm::alloc Kind>
-  using value_t =
-      property_value<usm_kind_key,
-                     std::integral_constant<sycl::usm::alloc, Kind>>;
-};
-
 template <sycl::usm::alloc Kind>
-inline constexpr usm_kind_key::value_t<Kind> usm_kind;
-inline constexpr usm_kind_key::value_t<sycl::usm::alloc::device>
-    usm_kind_device;
-inline constexpr usm_kind_key::value_t<sycl::usm::alloc::host> usm_kind_host;
-inline constexpr usm_kind_key::value_t<sycl::usm::alloc::shared>
-    usm_kind_shared;
+struct usm_kind_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          usm_kind_property<Kind>, struct usm_kind_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::usm_kind_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-usm-kind";
+  static constexpr sycl::usm::alloc ir_attribute_value = Kind;
+};
+template <sycl::usm::alloc Kind>
+inline constexpr usm_kind_property<Kind> usm_kind;
+inline constexpr auto usm_kind_device = usm_kind<sycl::usm::alloc::device>;
+inline constexpr auto usm_kind_host = usm_kind<sycl::usm::alloc::host>;
+inline constexpr auto usm_kind_shared = usm_kind<sycl::usm::alloc::shared>;
 
 template <typename T, sycl::usm::alloc Kind>
 struct is_valid_property<T, usm_kind_key::value_t<Kind>>
@@ -49,12 +49,6 @@ struct is_property_key_of<usm_kind_key, annotated_ptr<T, PropertyListT>>
     : std::true_type {};
 
 namespace detail {
-template <sycl::usm::alloc Kind>
-struct PropertyMetaInfo<usm_kind_key::value_t<Kind>> {
-  static constexpr const char *name = "sycl-usm-kind";
-  static constexpr sycl::usm::alloc value = Kind;
-};
-
 template <typename PropertyListT> struct IsUsmKindDevice : std::false_type {};
 template <typename... Props>
 struct IsUsmKindDevice<detail::properties_t<Props...>>
