@@ -50,6 +50,47 @@ template <int count> static constexpr void checkLevel4() {
   static_assert(count < 2, "Duplicate cache_level L4 specification");
 }
 
+// Values assigned to cache levels in a nibble.
+static constexpr int L1BIT = 1;
+static constexpr int L2BIT = 2;
+static constexpr int L3BIT = 4;
+static constexpr int L4BIT = 8;
+
+static constexpr int countL(int levels, int mask) {
+  return levels & mask ? 1 : 0;
+}
+
+template <int countL1, int countL2, int countL3, int countL4>
+static constexpr void checkUnique() {
+  static_assert(countL1 < 2, "Conflicting cache_mode at L1");
+  static_assert(countL2 < 2, "Conflicting cache_mode at L2");
+  static_assert(countL3 < 2, "Conflicting cache_mode at L3");
+  static_assert(countL4 < 2, "Conflicting cache_mode at L4");
+}
+
+template <cache_mode M> static constexpr int checkReadHint() {
+  static_assert(
+      M == cache_mode::uncached || M == cache_mode::cached ||
+          M == cache_mode::streaming,
+      "read_hint must specify cache_mode uncached, cached or streaming");
+  return 0;
+}
+
+template <cache_mode M> static constexpr int checkReadAssertion() {
+  static_assert(
+      M == cache_mode::invalidate || M == cache_mode::constant,
+      "read_assertion must specify cache_mode invalidate or constant");
+  return 0;
+}
+
+template <cache_mode M> static constexpr int checkWriteHint() {
+  static_assert(M == cache_mode::uncached || M == cache_mode::write_through ||
+                    M == cache_mode::write_back || M == cache_mode::streaming,
+                "write_hint must specify cache_mode uncached, write_through, "
+                "write_back or streaming");
+  return 0;
+}
+
 } // namespace detail
 
 template <cache_mode M, cache_level... Ls> struct cache_control {
@@ -68,39 +109,61 @@ template <cache_mode M, cache_level... Ls> struct cache_control {
        detail::checkLevel4<countL4>(), levels << static_cast<int>(M) * 4);
 };
 
-template <typename PropertyT, typename... Ts>
-using property_value =
-    sycl::ext::oneapi::experimental::property_value<PropertyT, Ts...>;
+template <typename... Cs>
+struct read_hint_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          read_hint_property<Cs...>, struct read_hint_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::read_hint_property"};
 
-struct read_hint_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::CacheControlReadHint> {
-  template <typename... Cs>
-  using value_t = property_value<read_hint_key, Cs...>;
+  static constexpr const char *ir_attribute_name = "sycl-cache-read-hint";
+  static constexpr const int ir_attribute_value =
+      ((detail::checkReadHint<Cs::mode>() + ...),
+       detail::checkUnique<(detail::countL(Cs::levels, detail::L1BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L2BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L3BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L4BIT) + ...)>(),
+       ((Cs::encoding) | ...));
 };
-
-struct read_assertion_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::CacheControlReadAssertion> {
-  template <typename... Cs>
-  using value_t = property_value<read_assertion_key, Cs...>;
-};
-
-struct write_hint_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::CacheControlWrite> {
-  template <typename... Cs>
-  using value_t = property_value<write_hint_key, Cs...>;
-};
+template <typename... Cs> inline constexpr read_hint_property<Cs...> read_hint;
 
 template <typename... Cs>
-inline constexpr read_hint_key::value_t<Cs...> read_hint;
+struct read_assertion_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          read_assertion_property<Cs...>, struct read_assertion_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::read_assertion_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-cache-read-assertion";
+  static constexpr const int ir_attribute_value =
+      ((detail::checkReadAssertion<Cs::mode>() + ...),
+       detail::checkUnique<(detail::countL(Cs::levels, detail::L1BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L2BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L3BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L4BIT) + ...)>(),
+       ((Cs::encoding) | ...));
+};
+template <typename... Cs>
+inline constexpr read_assertion_property<Cs...> read_assertion;
 
 template <typename... Cs>
-inline constexpr read_assertion_key::value_t<Cs...> read_assertion;
+struct write_hint_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          write_hint_property<Cs...>, struct write_hint_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::write_hint_property"};
 
+  static constexpr const char *ir_attribute_name = "sycl-cache-write-hint";
+  static constexpr const int ir_attribute_value =
+      ((detail::checkWriteHint<Cs::mode>() + ...),
+       detail::checkUnique<(detail::countL(Cs::levels, detail::L1BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L2BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L3BIT) + ...),
+                           (detail::countL(Cs::levels, detail::L4BIT) + ...)>(),
+       ((Cs::encoding) | ...));
+};
 template <typename... Cs>
-inline constexpr write_hint_key::value_t<Cs...> write_hint;
+inline constexpr write_hint_property<Cs...> write_hint;
 
 } // namespace experimental
 } // namespace intel
@@ -131,90 +194,6 @@ struct propagateToPtrAnnotation<intel::experimental::read_assertion_key>
 template <>
 struct propagateToPtrAnnotation<intel::experimental::write_hint_key>
     : std::true_type {};
-
-namespace detail {
-
-// Values assigned to cache levels in a nibble.
-static constexpr int L1BIT = 1;
-static constexpr int L2BIT = 2;
-static constexpr int L3BIT = 4;
-static constexpr int L4BIT = 8;
-
-static constexpr int countL(int levels, int mask) {
-  return levels & mask ? 1 : 0;
-}
-
-template <int countL1, int countL2, int countL3, int countL4>
-static constexpr void checkUnique() {
-  static_assert(countL1 < 2, "Conflicting cache_mode at L1");
-  static_assert(countL2 < 2, "Conflicting cache_mode at L2");
-  static_assert(countL3 < 2, "Conflicting cache_mode at L3");
-  static_assert(countL4 < 2, "Conflicting cache_mode at L4");
-}
-
-using cache_mode = sycl::ext::intel::experimental::cache_mode;
-
-template <cache_mode M> static constexpr int checkReadHint() {
-  static_assert(
-      M == cache_mode::uncached || M == cache_mode::cached ||
-          M == cache_mode::streaming,
-      "read_hint must specify cache_mode uncached, cached or streaming");
-  return 0;
-}
-
-template <cache_mode M> static constexpr int checkReadAssertion() {
-  static_assert(
-      M == cache_mode::invalidate || M == cache_mode::constant,
-      "read_assertion must specify cache_mode invalidate or constant");
-  return 0;
-}
-
-template <cache_mode M> static constexpr int checkWriteHint() {
-  static_assert(M == cache_mode::uncached || M == cache_mode::write_through ||
-                    M == cache_mode::write_back || M == cache_mode::streaming,
-                "write_hint must specify cache_mode uncached, write_through, "
-                "write_back or streaming");
-  return 0;
-}
-
-template <typename... Cs>
-struct PropertyMetaInfo<intel::experimental::read_hint_key::value_t<Cs...>> {
-  static constexpr const char *name = "sycl-cache-read-hint";
-  static constexpr const int value =
-      ((checkReadHint<Cs::mode>() + ...),
-       checkUnique<(countL(Cs::levels, L1BIT) + ...),
-                   (countL(Cs::levels, L2BIT) + ...),
-                   (countL(Cs::levels, L3BIT) + ...),
-                   (countL(Cs::levels, L4BIT) + ...)>(),
-       ((Cs::encoding) | ...));
-};
-
-template <typename... Cs>
-struct PropertyMetaInfo<
-    intel::experimental::read_assertion_key::value_t<Cs...>> {
-  static constexpr const char *name = "sycl-cache-read-assertion";
-  static constexpr const int value =
-      ((checkReadAssertion<Cs::mode>() + ...),
-       checkUnique<(countL(Cs::levels, L1BIT) + ...),
-                   (countL(Cs::levels, L2BIT) + ...),
-                   (countL(Cs::levels, L3BIT) + ...),
-                   (countL(Cs::levels, L4BIT) + ...)>(),
-       ((Cs::encoding) | ...));
-};
-
-template <typename... Cs>
-struct PropertyMetaInfo<intel::experimental::write_hint_key::value_t<Cs...>> {
-  static constexpr const char *name = "sycl-cache-write-hint";
-  static constexpr const int value =
-      ((checkWriteHint<Cs::mode>() + ...),
-       checkUnique<(countL(Cs::levels, L1BIT) + ...),
-                   (countL(Cs::levels, L2BIT) + ...),
-                   (countL(Cs::levels, L3BIT) + ...),
-                   (countL(Cs::levels, L4BIT) + ...)>(),
-       ((Cs::encoding) | ...));
-};
-
-} // namespace detail
 
 template <typename T, typename... Cs>
 struct is_valid_property<T, intel::experimental::read_hint_key::value_t<Cs...>>
