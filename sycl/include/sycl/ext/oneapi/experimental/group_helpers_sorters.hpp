@@ -38,28 +38,37 @@ namespace ext::oneapi::experimental {
 
 enum class group_algorithm_data_placement : std::uint8_t { blocked, striped };
 
-struct input_data_placement_key
-    : detail::compile_time_property_key<detail::PropKind::InputDataPlacement> {
-  template <group_algorithm_data_placement Placement>
-  using value_t = property_value<
-      input_data_placement_key,
-      std::integral_constant<group_algorithm_data_placement, Placement>>;
-};
+template <group_algorithm_data_placement Placement>
+struct input_data_placement_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          input_data_placement_property<Placement>,
+          struct input_data_placement_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::input_data_placement_property"};
 
-struct output_data_placement_key
-    : detail::compile_time_property_key<detail::PropKind::OutputDataPlacement> {
-  template <group_algorithm_data_placement Placement>
-  using value_t = property_value<
-      output_data_placement_key,
-      std::integral_constant<group_algorithm_data_placement, Placement>>;
+  static constexpr bool is_blocked() {
+    return Placement == group_algorithm_data_placement::blocked;
+  }
 };
 
 template <group_algorithm_data_placement Placement>
-inline constexpr input_data_placement_key::value_t<Placement>
-    input_data_placement;
+struct output_data_placement_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          output_data_placement_property<Placement>,
+          struct output_data_placement_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::output_data_placement_property"};
+
+  static constexpr bool is_blocked() {
+    return Placement == group_algorithm_data_placement::blocked;
+  }
+};
 
 template <group_algorithm_data_placement Placement>
-inline constexpr output_data_placement_key::value_t<Placement>
+inline constexpr input_data_placement_property<Placement> input_data_placement;
+
+template <group_algorithm_data_placement Placement>
+inline constexpr output_data_placement_property<Placement>
     output_data_placement;
 
 namespace detail {
@@ -67,8 +76,8 @@ namespace detail {
 template <typename Properties>
 constexpr bool isInputBlocked(Properties properties) {
   if constexpr (properties.template has_property<input_data_placement_key>())
-    return properties.template get_property<input_data_placement_key>() ==
-           input_data_placement<group_algorithm_data_placement::blocked>;
+    return properties.template get_property<input_data_placement_key>()
+        .is_blocked();
   else
     return true;
 }
@@ -76,8 +85,8 @@ constexpr bool isInputBlocked(Properties properties) {
 template <typename Properties>
 constexpr bool isOutputBlocked(Properties properties) {
   if constexpr (properties.template has_property<output_data_placement_key>())
-    return properties.template get_property<output_data_placement_key>() ==
-           output_data_placement<group_algorithm_data_placement::blocked>;
+    return properties.template get_property<output_data_placement_key>()
+        .is_blocked();
   else
     return true;
 }
