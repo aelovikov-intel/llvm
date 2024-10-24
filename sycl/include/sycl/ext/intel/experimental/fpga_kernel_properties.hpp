@@ -37,82 +37,89 @@ enum class fpga_cluster_options_enum : std::uint16_t {
   stall_enable
 };
 
-struct streaming_interface_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::StreamingInterface> {
-  template <streaming_interface_options_enum option>
-  using value_t = ext::oneapi::experimental::property_value<
-      streaming_interface_key,
-      std::integral_constant<streaming_interface_options_enum, option>>;
-};
+template <streaming_interface_options_enum option>
+struct streaming_interface_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          streaming_interface_property<option>,
+          struct streaming_interface_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::streaming_interface_property"};
 
-struct register_map_interface_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::RegisterMapInterface> {
-  template <register_map_interface_options_enum option>
-  using value_t = ext::oneapi::experimental::property_value<
-      register_map_interface_key,
-      std::integral_constant<register_map_interface_options_enum, option>>;
+  static constexpr const char *ir_attribute_name = "sycl-streaming-interface";
+  static constexpr auto ir_attribute_value = option;
 };
-
-struct pipelined_key : oneapi::experimental::detail::compile_time_property_key<
-                           oneapi::experimental::detail::PropKind::Pipelined> {
-  template <int pipeline_directive_or_initiation_interval>
-  using value_t = ext::oneapi::experimental::property_value<
-      pipelined_key,
-      std::integral_constant<int, pipeline_directive_or_initiation_interval>>;
-};
-
-struct fpga_cluster_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::FPGACluster> {
-  template <fpga_cluster_options_enum option>
-  using value_t = ext::oneapi::experimental::property_value<
-      fpga_cluster_key,
-      std::integral_constant<fpga_cluster_options_enum, option>>;
-};
-
 template <streaming_interface_options_enum option =
               streaming_interface_options_enum::accept_downstream_stall>
-inline constexpr streaming_interface_key::value_t<option> streaming_interface;
+inline constexpr streaming_interface_property<option> streaming_interface;
 
-inline constexpr streaming_interface_key::value_t<
-    streaming_interface_options_enum::accept_downstream_stall>
-    streaming_interface_accept_downstream_stall;
+inline constexpr auto streaming_interface_accept_downstream_stall =
+    streaming_interface<
+        streaming_interface_options_enum::accept_downstream_stall>;
 
-inline constexpr streaming_interface_key::value_t<
-    streaming_interface_options_enum::remove_downstream_stall>
-    streaming_interface_remove_downstream_stall;
+inline constexpr auto streaming_interface_remove_downstream_stall =
+    streaming_interface<
+        streaming_interface_options_enum::remove_downstream_stall>;
 
+template <register_map_interface_options_enum option>
+struct register_map_interface_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          register_map_interface_property<option>,
+          struct register_map_interface_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::register_map_interface_property"};
+
+  static constexpr const char *ir_attribute_name =
+      "sycl-register-map-interface";
+  static constexpr auto ir_attribute_value = option;
+};
 template <register_map_interface_options_enum option =
               register_map_interface_options_enum::do_not_wait_for_done_write>
-inline constexpr register_map_interface_key::value_t<option>
-    register_map_interface;
+inline constexpr register_map_interface_property<option> register_map_interface;
 
-inline constexpr register_map_interface_key::value_t<
-    register_map_interface_options_enum::wait_for_done_write>
-    register_map_interface_wait_for_done_write;
+inline constexpr auto register_map_interface_wait_for_done_write =
+    register_map_interface<
+        register_map_interface_options_enum::wait_for_done_write>;
 
-inline constexpr register_map_interface_key::value_t<
-    register_map_interface_options_enum::do_not_wait_for_done_write>
-    register_map_interface_do_not_wait_for_done_write;
+inline constexpr auto register_map_interface_do_not_wait_for_done_write =
+    register_map_interface<
+        register_map_interface_options_enum::do_not_wait_for_done_write>;
 
+template <int pipeline_directive_or_initiation_interval>
+struct pipelined_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          pipelined_property<pipeline_directive_or_initiation_interval>,
+          struct pipelined_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::pipelined_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-pipelined";
+  static constexpr int ir_attribute_value =
+      pipeline_directive_or_initiation_interval;
+};
 template <int pipeline_directive_or_initiation_interval = -1>
-inline constexpr pipelined_key::value_t<
-    pipeline_directive_or_initiation_interval>
+inline constexpr pipelined_property<pipeline_directive_or_initiation_interval>
     pipelined;
+
+template <fpga_cluster_options_enum option>
+struct fpga_cluster_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          fpga_cluster_property, struct fpga_cluster_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::fpga_cluster_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-fpga-cluster";
+  static constexpr auto ir_attribute_value = option;
+};
 
 template <fpga_cluster_options_enum option =
               fpga_cluster_options_enum::stall_free>
-inline constexpr fpga_cluster_key::value_t<option> fpga_cluster;
+inline constexpr fpga_cluster_property<option> fpga_cluster;
 
-inline constexpr fpga_cluster_key::value_t<
-    fpga_cluster_options_enum::stall_free>
-    stall_free_clusters;
+inline constexpr auto stall_free_clusters =
+    fpga_cluster<fpga_cluster_options_enum::stall_free>;
 
-inline constexpr fpga_cluster_key::value_t<
-    fpga_cluster_options_enum::stall_enable>
-    stall_enable_clusters;
+inline constexpr auto stall_enable_clusters =
+    fpga_cluster<fpga_cluster_options_enum::stall_enable>;
 
 } // namespace ext::intel::experimental
 
@@ -158,34 +165,6 @@ template <intel::experimental::register_map_interface_options_enum option>
 struct HasCompileTimeEffect<
     intel::experimental::register_map_interface_key::value_t<option>>
     : std::true_type {};
-
-template <intel::experimental::streaming_interface_options_enum Stall_Free>
-struct PropertyMetaInfo<
-    intel::experimental::streaming_interface_key::value_t<Stall_Free>> {
-  static constexpr const char *name = "sycl-streaming-interface";
-  static constexpr intel::experimental::streaming_interface_options_enum value =
-      Stall_Free;
-};
-template <intel::experimental::register_map_interface_options_enum Wait>
-struct PropertyMetaInfo<
-    intel::experimental::register_map_interface_key::value_t<Wait>> {
-  static constexpr const char *name = "sycl-register-map-interface";
-  static constexpr intel::experimental::register_map_interface_options_enum
-      value = Wait;
-};
-template <int Value>
-struct PropertyMetaInfo<intel::experimental::pipelined_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-pipelined";
-  static constexpr int value = Value;
-};
-
-template <intel::experimental::fpga_cluster_options_enum ClusterType>
-struct PropertyMetaInfo<
-    intel::experimental::fpga_cluster_key::value_t<ClusterType>> {
-  static constexpr const char *name = "sycl-fpga-cluster";
-  static constexpr intel::experimental::fpga_cluster_options_enum value =
-      ClusterType;
-};
 
 } // namespace detail
 } // namespace ext::oneapi::experimental
