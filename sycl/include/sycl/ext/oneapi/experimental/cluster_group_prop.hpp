@@ -16,10 +16,15 @@ inline namespace _V1 {
 namespace ext::oneapi::experimental {
 
 namespace cuda {
+
+// TODO: Should we change to a single key across all dimensions?
 template <int Dim>
 struct cluster_size
-    : ::sycl::ext::oneapi::experimental::detail::run_time_property_key<
-          ::sycl::ext::oneapi::experimental::detail::ClusterLaunch> {
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          cluster_size<Dim>> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::cluster_size"};
+
   cluster_size(const range<Dim> &size) : size(size) {}
   sycl::range<Dim> get_cluster_size() { return size; }
 

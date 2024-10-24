@@ -26,8 +26,12 @@ inline constexpr cache_config_enum large_slm =
 inline constexpr cache_config_enum large_data =
     cache_config_enum::large_data;
 
-struct cache_config : oneapi::experimental::detail::run_time_property_key<
-                          oneapi::experimental::detail::PropKind::CacheConfig> {
+struct cache_config
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          cache_config> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::cache_config"};
+
   cache_config(cache_config_enum v) : value(v) {}
   cache_config_enum value;
 };
