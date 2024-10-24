@@ -32,112 +32,142 @@ using property_value =
 // Property definitions
 enum class resource_enum : std::uint16_t { mlab, block_ram };
 
-struct resource_key : oneapi::experimental::detail::compile_time_property_key<
-                          oneapi::experimental::detail::PropKind::Resource> {
-  template <resource_enum Resource>
-  using value_t =
-      property_value<resource_key,
-                     std::integral_constant<resource_enum, Resource>>;
-};
+template <resource_enum Resource>
+struct resource_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          resource_property<Resource>, struct resource_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::resource_property"};
 
-struct num_banks_key : oneapi::experimental::detail::compile_time_property_key<
-                           oneapi::experimental::detail::PropKind::NumBanks> {
-  template <size_t Elements>
-  using value_t =
-      property_value<num_banks_key, std::integral_constant<size_t, Elements>>;
+  static constexpr const char *ir_attribute_name = "sycl-resource";
+  static constexpr const char *ir_attribute_value =
+      ((Resource == resource_enum::mlab) ? "MLAB" : "BLOCK_RAM");
 };
+template <resource_enum R> inline constexpr resource_property<R> resource;
+inline constexpr auto resource_mlab = auto resource<resource_enum::mlab>;
+inline constexpr auto resource_block_ram =
+    auto resource<resource_enum::block_ram>;
 
-struct stride_size_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::StrideSize> {
-  template <size_t Elements>
-  using value_t =
-      property_value<stride_size_key, std::integral_constant<size_t, Elements>>;
-};
+template <size_t Elements>
+struct num_banks_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          num_banks_property<Elements>, struct num_banks_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::num_banks_property"};
 
-struct word_size_key : oneapi::experimental::detail::compile_time_property_key<
-                           oneapi::experimental::detail::PropKind::WordSize> {
-  template <size_t Elements>
-  using value_t =
-      property_value<word_size_key, std::integral_constant<size_t, Elements>>;
+  static constexpr const char *ir_attribute_name = "sycl-num-banks";
+  static constexpr size_t ir_attribute_value = Elements;
 };
+template <size_t Elements>
+inline constexpr num_banks_property<Elements> num_banks;
 
-struct bi_directional_ports_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::BiDirectionalPorts> {
-  template <bool Enable>
-  using value_t =
-      property_value<bi_directional_ports_key, std::bool_constant<Enable>>;
-};
+template <size_t Elements>
+struct stride_size_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          stride_size_property<Elements>, struct stride_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::stride_size_property"};
 
-struct clock_2x_key : oneapi::experimental::detail::compile_time_property_key<
-                          oneapi::experimental::detail::PropKind::Clock2x> {
-  template <bool Enable>
-  using value_t = property_value<clock_2x_key, std::bool_constant<Enable>>;
+  static constexpr const char *ir_attribute_name = "sycl-stride-size";
+  static constexpr size_t ir_attribute_value = Elements;
 };
+template <size_t Elements>
+inline constexpr stride_size_property<Elements> stride_size;
+
+template <size_t Elements>
+struct word_size_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          word_size_property<Elements>, struct word_size_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::word_size_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-word-size";
+  static constexpr size_t ir_attribute_value = Elements;
+};
+template <size_t Elements>
+inline constexpr word_size_property<Elements> word_size;
+
+template <bool Enable>
+struct bi_directional_ports_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          bi_directional_ports_property<Enable>,
+          struct bi_directional_ports_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::bi_directional_ports_property"};
+
+  // historical uglyness: single property maps to different SPIRV decorations
+  static constexpr const char *ir_attribute_name =
+      (Enable ? "sycl-bi-directional-ports-true"
+              : "sycl-bi-directional-ports-false");
+  static constexpr std::nullptr_t ir_attribute_value = nullptr;
+};
+template <bool Enable>
+inline constexpr bi_directional_ports_property<Enable> bi_directional_ports;
+inline constexpr auto bi_directional_ports_false = bi_directional_ports<false>;
+inline constexpr auto bi_directional_ports_true = bi_directional_ports<true>;
+
+template <bool Enable>
+struct clock_2x_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          clock_2x_property<Enable>, struct clock_2x_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::clock_2x_property"};
+
+  // historical uglyness: single property maps to different SPIRV decorations
+  static constexpr const char *ir_attribute_name =
+      (Enable ? "sycl-clock-2x-true" : "sycl-clock-2x-false");
+  static constexpr std::nullptr_t ir_attribute_value = nullptr;
+};
+template <bool Enable> inline constexpr clock_2x_property<Enable> clock_2x;
+inline constexpr auto clock_2x_true = clock_2x<true>;
+inline constexpr auto clock_2x_false = clock_2x<false>;
 
 enum class ram_stitching_enum : std::uint16_t { min_ram, max_fmax };
 
-struct ram_stitching_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::RAMStitching> {
-  template <ram_stitching_enum RamStitching>
-  using value_t =
-      property_value<ram_stitching_key,
-                     std::integral_constant<ram_stitching_enum, RamStitching>>;
+template <ram_stitching_enum RamStitching>
+struct ram_stitching_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          ram_stitching_property<RamStitching>, struct ram_stitching_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::ram_stitching_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-ram-stitching";
+  // enum to bool conversion to match with the SPIR-V decoration
+  // ForcePow2DepthINTEL
+  static constexpr size_t ir_attribute_value =
+      static_cast<size_t>(RamStitching == ram_stitching_enum::max_fmax);
 };
-
-struct max_private_copies_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::MaxPrivateCopies> {
-  template <size_t N>
-  using value_t =
-      property_value<max_private_copies_key, std::integral_constant<size_t, N>>;
-};
-
-struct num_replicates_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::NumReplicates> {
-  template <size_t N>
-  using value_t =
-      property_value<num_replicates_key, std::integral_constant<size_t, N>>;
-};
-
-// Convenience aliases
-template <resource_enum R> inline constexpr resource_key::value_t<R> resource;
-inline constexpr resource_key::value_t<resource_enum::mlab> resource_mlab;
-inline constexpr resource_key::value_t<resource_enum::block_ram>
-    resource_block_ram;
-
-template <size_t E> inline constexpr num_banks_key::value_t<E> num_banks;
-
-template <size_t E> inline constexpr stride_size_key::value_t<E> stride_size;
-
-template <size_t E> inline constexpr word_size_key::value_t<E> word_size;
-
-template <bool B>
-inline constexpr bi_directional_ports_key::value_t<B> bi_directional_ports;
-inline constexpr bi_directional_ports_key::value_t<false>
-    bi_directional_ports_false;
-inline constexpr bi_directional_ports_key::value_t<true>
-    bi_directional_ports_true;
-
-template <bool B> inline constexpr clock_2x_key::value_t<B> clock_2x;
-inline constexpr clock_2x_key::value_t<true> clock_2x_true;
-inline constexpr clock_2x_key::value_t<false> clock_2x_false;
-
-template <ram_stitching_enum D>
-inline constexpr ram_stitching_key::value_t<D> ram_stitching;
-inline constexpr ram_stitching_key::value_t<ram_stitching_enum::min_ram>
-    ram_stitching_min_ram;
-inline constexpr ram_stitching_key::value_t<ram_stitching_enum::max_fmax>
-    ram_stitching_max_fmax;
+template <ram_stitching_enum RamStitching>
+inline constexpr ram_stitching_property<RamStitching> ram_stitching;
+inline constexpr auto ram_stitching_min_ram =
+    ram_stitching<ram_stitching_enum::min_ram>;
+inline constexpr auto ram_stitching_max_fmax =
+    ram_stitching<ram_stitching_enum::max_fmax>;
 
 template <size_t N>
-inline constexpr max_private_copies_key::value_t<N> max_private_copies;
+struct max_private_copies_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          max_private_copies_property<N>, struct max_private_copies_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::max_private_copies_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-max-private-copies";
+  static constexpr size_t ir_attribute_value = N;
+};
+template <size_t N>
+inline constexpr max_private_copies_property<N> max_private_copies;
 
 template <size_t N>
-inline constexpr num_replicates_key::value_t<N> num_replicates;
+struct num_replicates_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          num_replicates_property<N>, struct num_replicates_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::num_replicates_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-num-replicates";
+  static constexpr size_t ir_attribute_value = N;
+};
+template <size_t N> inline constexpr num_replicates_property<N> num_replicates;
 
 } // namespace intel::experimental
 
@@ -181,69 +211,6 @@ struct is_property_key_of<intel::experimental::num_replicates_key,
                           intel::experimental::fpga_mem<T, PropertyListT>>
     : std::true_type {};
 
-namespace detail {
-// Map Property to MetaInfo
-template <intel::experimental::resource_enum Value>
-struct PropertyMetaInfo<intel::experimental::resource_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-resource";
-  static constexpr const char *value =
-      ((Value == intel::experimental::resource_enum::mlab) ? "MLAB"
-                                                           : "BLOCK_RAM");
-};
-template <size_t Value>
-struct PropertyMetaInfo<intel::experimental::num_banks_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-num-banks";
-  static constexpr size_t value = Value;
-};
-template <size_t Value>
-struct PropertyMetaInfo<intel::experimental::stride_size_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-stride-size";
-  static constexpr size_t value = Value;
-};
-template <size_t Value>
-struct PropertyMetaInfo<intel::experimental::word_size_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-word-size";
-  static constexpr size_t value = Value;
-};
-template <bool Value>
-struct PropertyMetaInfo<
-    intel::experimental::bi_directional_ports_key::value_t<Value>> {
-  // historical uglyness: single property maps to different SPIRV decorations
-  static constexpr const char *name =
-      (Value ? "sycl-bi-directional-ports-true"
-             : "sycl-bi-directional-ports-false");
-  static constexpr std::nullptr_t value = nullptr;
-};
-template <bool Value>
-struct PropertyMetaInfo<intel::experimental::clock_2x_key::value_t<Value>> {
-  // historical uglyness: single property maps to different SPIRV decorations
-  static constexpr const char *name =
-      (Value ? "sycl-clock-2x-true" : "sycl-clock-2x-false");
-  static constexpr std::nullptr_t value = nullptr;
-};
-template <intel::experimental::ram_stitching_enum Value>
-struct PropertyMetaInfo<
-    intel::experimental::ram_stitching_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-ram-stitching";
-  // enum to bool conversion to match with the SPIR-V decoration
-  // ForcePow2DepthINTEL
-  static constexpr size_t value = static_cast<size_t>(
-      Value == intel::experimental::ram_stitching_enum::max_fmax);
-};
-template <size_t Value>
-struct PropertyMetaInfo<
-    intel::experimental::max_private_copies_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-max-private-copies";
-  static constexpr size_t value = Value;
-};
-template <size_t Value>
-struct PropertyMetaInfo<
-    intel::experimental::num_replicates_key::value_t<Value>> {
-  static constexpr const char *name = "sycl-num-replicates";
-  static constexpr size_t value = Value;
-};
-
-} // namespace detail
 } // namespace oneapi::experimental
 } // namespace ext
 } // namespace _V1
