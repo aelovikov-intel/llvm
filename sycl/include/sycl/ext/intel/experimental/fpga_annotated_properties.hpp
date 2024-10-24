@@ -25,104 +25,134 @@ namespace ext {
 namespace intel {
 namespace experimental {
 
-template <typename PropertyT, typename... Ts>
-using property_value =
-    sycl::ext::oneapi::experimental::property_value<PropertyT, Ts...>;
 //===----------------------------------------------------------------------===//
 //        FPGA properties of annotated_arg/annotated_ptr
 //===----------------------------------------------------------------------===//
-struct register_map_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::RegisterMap> {
-  using value_t = property_value<register_map_key>;
-};
 
-struct conduit_key : oneapi::experimental::detail::compile_time_property_key<
-                         oneapi::experimental::detail::PropKind::Conduit> {
-  using value_t = property_value<conduit_key>;
-};
+struct register_map_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          register_map_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::register_map_property"};
 
-struct stable_key : oneapi::experimental::detail::compile_time_property_key<
-                        oneapi::experimental::detail::PropKind::Stable> {
-  using value_t = property_value<stable_key>;
+  static constexpr const char *ir_attribute_name = "sycl-register-map";
+  static constexpr std::nullptr_t ir_attribute_value = nullptr;
 };
+inline constexpr register_map_property register_map;
 
-struct buffer_location_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::BufferLocation> {
-  template <int K>
-  using value_t =
-      property_value<buffer_location_key, std::integral_constant<int, K>>;
-};
+struct conduit_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          conduit_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::conduit_property"};
 
-struct awidth_key : oneapi::experimental::detail::compile_time_property_key<
-                        oneapi::experimental::detail::PropKind::AddrWidth> {
-  template <int K>
-  using value_t = property_value<awidth_key, std::integral_constant<int, K>>;
+  static constexpr const char *ir_attribute_name = "sycl-conduit";
+  static constexpr std::nullptr_t ir_attribute_value = nullptr;
 };
+inline constexpr conduit_property conduit;
 
-struct dwidth_key : oneapi::experimental::detail::compile_time_property_key<
-                        oneapi::experimental::detail::PropKind::DataWidth> {
-  template <int K>
-  using value_t = property_value<dwidth_key, std::integral_constant<int, K>>;
-};
+struct stable_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          stable_property> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::stable_property"};
 
-struct latency_key : oneapi::experimental::detail::compile_time_property_key<
-                         oneapi::experimental::detail::PropKind::Latency> {
-  template <int K>
-  using value_t = property_value<latency_key, std::integral_constant<int, K>>;
+  static constexpr const char *ir_attribute_name = "sycl-stable";
+  static constexpr std::nullptr_t ir_attribute_value = nullptr;
 };
+inline constexpr stable_property stable;
+
+template <int N>
+struct buffer_location_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          buffer_location_property<N>, struct buffer_location_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::buffer_location_property"};
+  static constexpr const char *ir_attribute_name = "sycl-buffer-location";
+  static constexpr int ir_attribute_value = N;
+};
+template <int N>
+inline constexpr buffer_location_property<N> buffer_location;
+
+template <int N>
+struct awidth_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          awidth_property<N>, struct awidth_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::awidth_property"};
+  static constexpr const char *ir_attribute_name = "sycl-awidth";
+  static constexpr int ir_attribute_value = N;
+};
+template <int N> inline constexpr awidth_property<N> awidth;
+
+template <int K>
+struct dwidth_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          dwidth_property<K>, struct dwidth_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::dwidth_property"};
+  static constexpr const char *ir_attribute_name = "sycl-dwidth";
+  static constexpr int ir_attribute_value = N;
+};
+template <int N> inline constexpr dwidth_property<N> dwidth;
+
+template <int N>
+struct latency_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          latency_property<N>, struct latency_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::latency_property"};
+  static constexpr const char *ir_attribute_name = "sycl-latency";
+  static constexpr int ir_attribute_value = N;
+};
+template <int N> inline constexpr latency_property<N> latency;
 
 enum class read_write_mode_enum : std::uint16_t { read, write, read_write };
 
-struct read_write_mode_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::RWMode> {
-  template <read_write_mode_enum Mode>
-  using value_t =
-      property_value<read_write_mode_key,
-                     std::integral_constant<read_write_mode_enum, Mode>>;
-};
-
-struct maxburst_key : oneapi::experimental::detail::compile_time_property_key<
-                          oneapi::experimental::detail::PropKind::MaxBurst> {
-  template <int K>
-  using value_t = property_value<maxburst_key, std::integral_constant<int, K>>;
-};
-
-struct wait_request_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::WaitRequest> {
-  template <int K>
-  using value_t =
-      property_value<wait_request_key, std::integral_constant<int, K>>;
-};
-
-// non-mmhost properties
-inline constexpr register_map_key::value_t register_map;
-inline constexpr conduit_key::value_t conduit;
-inline constexpr stable_key::value_t stable;
-
-// mmhost properties
-template <int N>
-inline constexpr buffer_location_key::value_t<N> buffer_location;
-template <int W> inline constexpr awidth_key::value_t<W> awidth;
-template <int W> inline constexpr dwidth_key::value_t<W> dwidth;
-template <int N> inline constexpr latency_key::value_t<N> latency;
-template <int N> inline constexpr maxburst_key::value_t<N> maxburst;
-template <int Enable>
-inline constexpr wait_request_key::value_t<Enable> wait_request;
-inline constexpr wait_request_key::value_t<1> wait_request_requested;
-inline constexpr wait_request_key::value_t<0> wait_request_not_requested;
-
 template <read_write_mode_enum Mode>
-inline constexpr read_write_mode_key::value_t<Mode> read_write_mode;
-inline constexpr read_write_mode_key::value_t<read_write_mode_enum::read>
-    read_write_mode_read;
-inline constexpr read_write_mode_key::value_t<read_write_mode_enum::write>
-    read_write_mode_write;
-inline constexpr read_write_mode_key::value_t<read_write_mode_enum::read_write>
-    read_write_mode_readwrite;
+struct read_write_mode_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          read_write_mode_property<Mode>, struct read_write_mode_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::read_write_mode_property"};
+
+  static constexpr const char *ir_attribute_name = "sycl-read-write-mode";
+  static constexpr read_write_mode_enum ir_attribute_value = Mode;
+};
+template <read_write_mode_enum Mode>
+inline constexpr read_write_mode_property<Mode> read_write_mode;
+inline constexpr auto read_write_mode_read =
+    read_write_mode<read_write_mode_enum::read>;
+inline constexpr auto read_write_mode_write =
+    read_write_mode<read_write_mode_enum::write>;
+inline constexpr auto read_write_mode_read_write =
+    read_write_mode<read_write_mode_enum::read_write>;
+
+template <int N>
+struct maxburst_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          maxburst_property<N>, struct maxburst_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::maxburst_property"};
+  static constexpr const char *ir_attribute_name = "sycl-maxburst";
+  static constexpr int ir_attribute_value = N;
+};
+template <int N> inline constexpr maxburst_property<N> maxburst;
+
+template <int Enable>
+struct wait_request_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          wait_request_property<Enable>, struct wait_request_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::wait_request_property"};
+
+  static constexpr const char *name = "sycl-wait-request";
+  static constexpr int value = Enable;
+};
+template <int Enable>
+inline constexpr wait_request_property<Enable> wait_request;
+inline constexpr auto wait_request_requested = wait_request<1>;
+inline constexpr auto wait_request_not_requested = wait_request<0>;
 
 } // namespace experimental
 } // namespace intel
@@ -224,53 +254,6 @@ struct is_property_key_of<maxburst_key, annotated_ptr<T, PropertyListT>>
 template <typename T, typename PropertyListT>
 struct is_property_key_of<wait_request_key, annotated_ptr<T, PropertyListT>>
     : std::true_type {};
-
-namespace detail {
-template <> struct PropertyMetaInfo<register_map_key::value_t> {
-  static constexpr const char *name = "sycl-register-map";
-  static constexpr std::nullptr_t value = nullptr;
-};
-template <> struct PropertyMetaInfo<conduit_key::value_t> {
-  static constexpr const char *name = "sycl-conduit";
-  static constexpr std::nullptr_t value = nullptr;
-};
-template <> struct PropertyMetaInfo<stable_key::value_t> {
-  static constexpr const char *name = "sycl-stable";
-  static constexpr std::nullptr_t value = nullptr;
-};
-
-template <int N> struct PropertyMetaInfo<buffer_location_key::value_t<N>> {
-  static constexpr const char *name = "sycl-buffer-location";
-  static constexpr int value = N;
-};
-template <int W> struct PropertyMetaInfo<awidth_key::value_t<W>> {
-  static constexpr const char *name = "sycl-awidth";
-  static constexpr int value = W;
-};
-template <int W> struct PropertyMetaInfo<dwidth_key::value_t<W>> {
-  static constexpr const char *name = "sycl-dwidth";
-  static constexpr int value = W;
-};
-template <int N> struct PropertyMetaInfo<latency_key::value_t<N>> {
-  static constexpr const char *name = "sycl-latency";
-  static constexpr int value = N;
-};
-template <int N> struct PropertyMetaInfo<maxburst_key::value_t<N>> {
-  static constexpr const char *name = "sycl-maxburst";
-  static constexpr int value = N;
-};
-template <int Enable>
-struct PropertyMetaInfo<wait_request_key::value_t<Enable>> {
-  static constexpr const char *name = "sycl-wait-request";
-  static constexpr int value = Enable;
-};
-template <read_write_mode_enum Mode>
-struct PropertyMetaInfo<read_write_mode_key::value_t<Mode>> {
-  static constexpr const char *name = "sycl-read-write-mode";
-  static constexpr read_write_mode_enum value = Mode;
-};
-
-} // namespace detail
 
 // 'buffer_location' and mmhost properties are pointers-only
 template <typename T, int N>
