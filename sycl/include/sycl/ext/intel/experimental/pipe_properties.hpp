@@ -19,39 +19,61 @@ namespace sycl {
 inline namespace _V1 {
 namespace ext::intel::experimental {
 
-struct ready_latency_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::ReadyLatency> {
-  template <int Latency>
-  using value_t = oneapi::experimental::property_value<
-      ready_latency_key, std::integral_constant<int, Latency>>;
-};
+template <int Latency>
+struct ready_latency_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          ready_latency_property<Latency>, struct ready_latency_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::ready_latency_property"};
 
-struct bits_per_symbol_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::BitsPerSymbol> {
-  template <int Bits>
-  using value_t =
-      oneapi::experimental::property_value<bits_per_symbol_key,
-                                           std::integral_constant<int, Bits>>;
+  static constexpr auto value = Latency;
 };
+template <int Latency>
+inline constexpr ready_latency_property<Latency> ready_latency;
 
-struct uses_valid_key : oneapi::experimental::detail::compile_time_property_key<
-                            oneapi::experimental::detail::PropKind::UsesValid> {
-  template <bool Valid>
-  using value_t =
-      oneapi::experimental::property_value<uses_valid_key,
-                                           std::bool_constant<Valid>>;
-};
+template <int Bits>
+struct bits_per_symbol_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          bits_per_symbol_property<Bits>, struct bits_per_symbol_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::bits_per_symbol_property"};
 
-struct first_symbol_in_high_order_bits_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::FirstSymbolInHigherOrderBit> {
-  template <bool HighOrder>
-  using value_t =
-      oneapi::experimental::property_value<first_symbol_in_high_order_bits_key,
-                                           std::bool_constant<HighOrder>>;
+  static constexpr auto value = Bits;
 };
+template <int Bits>
+inline constexpr bits_per_symbol_property<Bits> bits_per_symbol;
+
+template <bool Valid>
+struct uses_valid_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          uses_valid_property<Valid>, struct uses_valid_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::uses_valid_property"};
+
+  static constexpr auto value = Valid;
+};
+template <bool Valid> inline constexpr uses_valid_property<Valid> uses_valid;
+inline constexpr auto uses_valid_on = uses_valid<true>;
+inline constexpr auto uses_valid_off = uses_valid<false>;
+
+template <bool HighOrder>
+struct first_symbol_in_high_order_bits_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          first_symbol_in_high_order_bits_property<HighOrder>,
+          struct first_symbol_in_high_order_bits_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::intel::experimental::first_symbol_in_high_order_bits_"
+      "property"};
+
+  static constexpr auto value = HighOrder;
+};
+template <bool HighOrder>
+inline constexpr first_symbol_in_high_order_bits_property<HighOrder>
+    first_symbol_in_high_order_bits;
+inline constexpr auto first_symbol_in_high_order_bits_on =
+    first_symbol_in_high_order_bits<true>;
+inline constexpr auto first_symbol_in_high_order_bits_off =
+    first_symbol_in_high_order_bits<false>;
 
 enum class protocol_name : std::uint16_t {
   avalon_streaming = 0,
@@ -60,44 +82,23 @@ enum class protocol_name : std::uint16_t {
   avalon_mm_uses_ready = 3
 };
 
-struct protocol_key
-    : oneapi::experimental::detail::compile_time_property_key<
-          oneapi::experimental::detail::PropKind::PipeProtocol> {
-  template <protocol_name Protocol>
-  using value_t = oneapi::experimental::property_value<
-      protocol_key, std::integral_constant<protocol_name, Protocol>>;
-};
-
-template <int Latency>
-inline constexpr ready_latency_key::value_t<Latency> ready_latency;
-
-template <int Bits>
-inline constexpr bits_per_symbol_key::value_t<Bits> bits_per_symbol;
-
-template <bool Valid>
-inline constexpr uses_valid_key::value_t<Valid> uses_valid;
-inline constexpr uses_valid_key::value_t<true> uses_valid_on;
-inline constexpr uses_valid_key::value_t<false> uses_valid_off;
-
-template <bool HighOrder>
-inline constexpr first_symbol_in_high_order_bits_key::value_t<HighOrder>
-    first_symbol_in_high_order_bits;
-inline constexpr first_symbol_in_high_order_bits_key::value_t<true>
-    first_symbol_in_high_order_bits_on;
-inline constexpr first_symbol_in_high_order_bits_key::value_t<false>
-    first_symbol_in_high_order_bits_off;
-
 template <protocol_name Protocol>
-inline constexpr protocol_key::value_t<Protocol> protocol;
-inline constexpr protocol_key::value_t<protocol_name::avalon_streaming>
-    protocol_avalon_streaming;
-inline constexpr protocol_key::value_t<
-    protocol_name::avalon_streaming_uses_ready>
-    protocol_avalon_streaming_uses_ready;
-inline constexpr protocol_key::value_t<protocol_name::avalon_mm>
-    protocol_avalon_mm;
-inline constexpr protocol_key::value_t<protocol_name::avalon_mm_uses_ready>
-    protocol_avalon_mm_uses_ready;
+struct protocol_property
+    : ext::oneapi::experimental::new_properties::detail::property_base<
+          protocol_property<Protocol>, struct protocol_key> {
+  static constexpr std::string_view property_name{
+      "sycl::ext::oneapi::experimental::"};
+
+  static constexpr auto value = Protocol;
+};
+template <protocol_name Protocol>
+inline constexpr protocol_property<Protocol> protocol;
+// clang-format off
+inline constexpr auto protocol_avalon_streaming            = protocol<protocol_name::avalon_streaming>;
+inline constexpr auto protocol_avalon_streaming_uses_ready = protocol<protocol_name::avalon_streaming_uses_ready>;
+inline constexpr auto protocol_avalon_mm                   = protocol<protocol_name::avalon_mm>;
+inline constexpr auto protocol_avalon_mm_uses_ready        = protocol<protocol_name::avalon_mm_uses_ready>;
+// clang-format on
 
 } // namespace ext::intel::experimental
 } // namespace _V1
