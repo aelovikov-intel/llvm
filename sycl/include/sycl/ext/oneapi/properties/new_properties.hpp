@@ -13,8 +13,10 @@
 #include <type_traits>
 #include <utility>
 
+#ifndef __SYCL_EBO
 #include <sycl/detail/defines_elementary.hpp>
-#include <sycl/detail/type_traits.hpp>
+#endif
+
 
 namespace sycl {
 inline namespace _V1 {
@@ -350,22 +352,6 @@ properties(unsorted_property_tys...)
         unsorted_property_tys...>::type>;
 
 using empty_properties_t = decltype(properties{});
-
-// FIXME:
-template <typename property_list_ty, typename... allowed_property_keys>
-struct all_properties_in : std::false_type {};
-template <typename... property_tys, typename... allowed_property_keys>
-struct all_properties_in<
-    properties<detail::properties_type_list<property_tys...>>,
-    allowed_property_keys...>
-    : std::bool_constant<((sycl::detail::check_type_in_v<
-                               property_tys, allowed_property_keys...> &&
-                           ...))> {};
-
-template <typename property_list_ty, typename... allowed_property_keys>
-inline constexpr bool all_properties_in_v =
-    all_properties_in<std::remove_const_t<property_list_ty>,
-                      allowed_property_keys...>::value;
 } // namespace new_properties
 } // namespace ext::oneapi::experimental
 } // namespace _V1
