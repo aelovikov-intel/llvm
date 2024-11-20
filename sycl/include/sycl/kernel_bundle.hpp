@@ -923,8 +923,7 @@ struct is_property_key_of<include_files_key,
 // PropertyT syclex::build_options
 /////////////////////////
 struct build_options
-    : detail::run_time_property_key<build_options,
-                                    detail::PropKind::BuildOptions> {
+    : detail::property_base<build_options, detail::PropKind::BuildOptions> {
   std::vector<std::string> opts;
   build_options(const std::string &optsArg) : opts{optsArg} {}
   build_options(const std::vector<std::string> &optsArg) : opts(optsArg) {}
