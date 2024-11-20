@@ -234,7 +234,7 @@ struct property_tag {};
 // This is used to implement has/get_property via inheritance queries.
 template <typename property_key_t> struct property_key_tag : property_tag {};
 
-template <typename property_t, PropKind Kind,
+template <typename property_t, PropKind Kind_,
           typename property_key_t = property_t>
 struct property_base : property_key_tag<property_key_t> {
   using key_t = property_key_t;
@@ -247,18 +247,9 @@ protected:
   // For key_t access in error reporting specialization.
   template <typename> friend class __SYCL_EBO properties;
 
-#if !defined(_MSC_VER)
-  // Temporary, to ensure new code matches previous behavior and to catch any
-  // silly copy-paste mistakes. MSVC can't compile it, but linux-only is
-  // enough for this temporary check.
-  static_assert([]() constexpr {
-    if constexpr (std::is_same_v<property_t, key_t>)
-      // key_t is incomplete at this point for runtime properties.
-      return true;
-    else
-      return Kind == PropertyToKind<key_t>::Kind;
-  }());
-#endif
+  static constexpr PropKind Kind = Kind_;
+
+  template <typename T> friend struct PropertyToKind;
 };
 
 struct property_key_base_tag {};
@@ -290,14 +281,27 @@ template <typename PropertyT> struct PropertyID {
 };
 
 // Trait for property compile-time meta names and values.
-template <typename PropertyT> struct PropertyMetaInfo {
+template <typename PropertyT, typename = void> struct PropertyMetaInfo {
   // Some properties don't have meaningful compile-time values.
   // Default to empty, as those will be ignored anyway.
   static constexpr const char *name = "";
   static constexpr std::nullptr_t value = nullptr;
 };
 
-template <typename> struct HasCompileTimeEffect : std::false_type {};
+template <typename PropertyT>
+struct PropertyMetaInfo<PropertyT,
+                        std::void_t<decltype(PropertyT::ir_attribute_name)>> {
+  static constexpr const char *name = PropertyT::ir_attribute_name;
+  static constexpr auto value = PropertyT::ir_attribute_value;
+};
+
+template <typename, typename = void>
+struct HasCompileTimeEffect : std::false_type {};
+
+template <typename Property>
+struct HasCompileTimeEffect<
+    Property, std::void_t<decltype(Property::has_compile_time_effect)>>
+    : std::bool_constant<Property::has_compile_time_effect> {};
 
 } // namespace detail
 

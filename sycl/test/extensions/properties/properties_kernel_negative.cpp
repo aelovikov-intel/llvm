@@ -27,7 +27,8 @@ template <uint32_t I> struct KernelFunctorWithSGSize {
 };
 
 void check_work_group_size() {
-  // expected-error@+1 {{too few template arguments for variable template 'work_group_size'}}
+  // expected-error-re@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{static assertion failed due to requirement {{.+}}: work_group_size property currently only supports from one up to three values.}}
+  // expected-error@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{constexpr variable 'work_group_size<>' must be initialized by a constant expression}}
   auto WGSize0 = sycl::ext::oneapi::experimental::work_group_size<>;
 
   // expected-error-re@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{static assertion failed due to requirement {{.+}}: work_group_size property must only contain non-zero values.}}
@@ -75,7 +76,7 @@ void check_work_group_size() {
   // expected-note@+1 {{in instantiation of variable template specialization 'sycl::ext::oneapi::experimental::work_group_size<1, 0, 1>' requested here}}
   auto WGSize11 = sycl::ext::oneapi::experimental::work_group_size<1, 0, 1>;
 
-  // expected-error-re@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{static assertion failed due to requirement {{.+}}: work_group_size property currently only supports up to three values.}}
+  // expected-error-re@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{static assertion failed due to requirement {{.+}}: work_group_size property currently only supports from one up to three values.}}
   // expected-error@sycl/ext/oneapi/kernel_properties/properties.hpp:* {{constexpr variable 'work_group_size<1, 1, 1, 1>' must be initialized by a constant expression}}
   // expected-note@+1 {{in instantiation of variable template specialization 'sycl::ext::oneapi::experimental::work_group_size<1, 1, 1, 1>' requested here}}
   auto WGSize12 = sycl::ext::oneapi::experimental::work_group_size<1, 1, 1, 1>;

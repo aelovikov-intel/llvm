@@ -32,12 +32,34 @@ template <size_t X, size_t... Xs> struct AllNonZero<X, Xs...> {
 
 struct properties_tag {};
 
-struct work_group_size_key
-    : detail::compile_time_property_key<detail::PropKind::WorkGroupSize> {
-  template <size_t... Dims>
-  using value_t = property_value<work_group_size_key,
-                                 std::integral_constant<size_t, Dims>...>;
+template <size_t... Dims>
+struct work_group_size_property
+    : detail::property_base<work_group_size_property<Dims...>,
+                            detail::PropKind::WorkGroupSize,
+                            struct work_group_size_key> {
+  static_assert(sizeof...(Dims) >= 1 && sizeof...(Dims) <= 3,
+                "work_group_size property currently only supports from one up "
+                "to three values.");
+  static_assert((((Dims != 0) && ...)),
+                "work_group_size property must only contain non-zero values.");
+  constexpr size_t operator[](int Dim) const {
+    return std::array{Dims...}[Dim];
+  }
+
+  static constexpr const char *ir_attribute_name = "sycl-work-group-size";
+  static constexpr const char *ir_attribute_value =
+      detail::SizeListToStr<Dims...>::value;
+
+  static constexpr bool has_compile_time_effect = true;
+
+private:
+  constexpr size_t size() const { return sizeof...(Dims); }
+
+  template <typename, typename> friend struct detail::ConflictingProperties;
 };
+
+template <size_t... Dims>
+inline constexpr work_group_size_property<Dims...> work_group_size;
 
 struct work_group_size_hint_key
     : detail::compile_time_property_key<detail::PropKind::WorkGroupSizeHint> {
@@ -85,30 +107,6 @@ struct max_linear_work_group_size_key
   template <size_t Size>
   using value_t = property_value<max_linear_work_group_size_key,
                                  std::integral_constant<size_t, Size>>;
-};
-
-template <size_t Dim0, size_t... Dims>
-struct property_value<work_group_size_key, std::integral_constant<size_t, Dim0>,
-                      std::integral_constant<size_t, Dims>...>
-    : detail::property_base<
-          property_value<work_group_size_key,
-                         std::integral_constant<size_t, Dim0>,
-                         std::integral_constant<size_t, Dims>...>,
-          detail::PropKind::WorkGroupSize, work_group_size_key> {
-  static_assert(
-      sizeof...(Dims) + 1 <= 3,
-      "work_group_size property currently only supports up to three values.");
-  static_assert(detail::AllNonZero<Dim0, Dims...>::value,
-                "work_group_size property must only contain non-zero values.");
-
-  constexpr size_t operator[](int Dim) const {
-    return std::array<size_t, sizeof...(Dims) + 1>{Dim0, Dims...}[Dim];
-  }
-
-private:
-  constexpr size_t size() const { return sizeof...(Dims) + 1; }
-
-  template <typename, typename> friend struct detail::ConflictingProperties;
 };
 
 template <size_t Dim0, size_t... Dims>
@@ -207,9 +205,6 @@ struct property_value<max_linear_work_group_size_key>
     : detail::property_base<property_value<max_linear_work_group_size_key>,
                             detail::PropKind::MaxLinearWorkGroupSize,
                             max_linear_work_group_size_key> {};
-
-template <size_t Dim0, size_t... Dims>
-inline constexpr work_group_size_key::value_t<Dim0, Dims...> work_group_size;
 
 template <size_t Dim0, size_t... Dims>
 inline constexpr work_group_size_hint_key::value_t<Dim0, Dims...>
@@ -330,9 +325,6 @@ inline constexpr work_item_progress_key::value_t<Guarantee, CoordinationScope>
 namespace detail {
 
 template <size_t... Dims>
-struct HasCompileTimeEffect<work_group_size_key::value_t<Dims...>>
-    : std::true_type {};
-template <size_t... Dims>
 struct HasCompileTimeEffect<work_group_size_hint_key::value_t<Dims...>>
     : std::true_type {};
 template <uint32_t Size>
@@ -342,11 +334,6 @@ template <sycl::aspect... Aspects>
 struct HasCompileTimeEffect<device_has_key::value_t<Aspects...>>
     : std::true_type {};
 
-template <size_t Dim0, size_t... Dims>
-struct PropertyMetaInfo<work_group_size_key::value_t<Dim0, Dims...>> {
-  static constexpr const char *name = "sycl-work-group-size";
-  static constexpr const char *value = SizeListToStr<Dim0, Dims...>::value;
-};
 template <size_t Dim0, size_t... Dims>
 struct PropertyMetaInfo<work_group_size_hint_key::value_t<Dim0, Dims...>> {
   static constexpr const char *name = "sycl-work-group-size-hint";

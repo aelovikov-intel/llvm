@@ -41,7 +41,7 @@ void testInvalidCompileTimeProperty(sycl::queue &q) {
   // expected-error-re@sycl/ext/oneapi/experimental/annotated_usm/alloc_util.hpp:* {{static assertion failed due to requirement {{.+}}device_has_key{{.+}}: Found invalid compile-time property in the property list.}}
   TEST(malloc_device_annotated<int>, N, dev, Ctx, properties{buffer_location<1>, device_has<sycl::aspect::cpu>})
 
-  // expected-error-re@sycl/ext/oneapi/experimental/annotated_usm/alloc_util.hpp:* {{static assertion failed due to requirement {{.+}}work_group_size_key{{.+}}: Found invalid compile-time property in the property list.}}
+  // expected-error-re@sycl/ext/oneapi/experimental/annotated_usm/alloc_util.hpp:* {{static assertion failed due to requirement {{.+}}work_group_size_property<1>{{.+}}: Found invalid compile-time property in the property list.}}
   TEST(aligned_alloc_device_annotated, 1, N, q, properties{register_map, work_group_size<1>})
 
   // expected-error-re@sycl/ext/oneapi/experimental/annotated_usm/alloc_util.hpp:* {{static assertion failed due to requirement {{.+}}baz_key{{.+}}: Found invalid compile-time property in the property list.}}

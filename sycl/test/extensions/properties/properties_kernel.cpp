@@ -38,7 +38,7 @@ template <aspect Aspect> inline void singleAspectDeviceHasChecks() {
 
 int main() {
   static_assert(sycl::ext::oneapi::experimental::detail::HasCompileTimeEffect<
-                work_group_size_key::value_t<1>>::value);
+                work_group_size_property<1>>::value);
   static_assert(sycl::ext::oneapi::experimental::detail::HasCompileTimeEffect<
                 work_group_size_hint_key::value_t<1>>::value);
   static_assert(sycl::ext::oneapi::experimental::detail::HasCompileTimeEffect<
