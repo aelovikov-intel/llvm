@@ -22,22 +22,22 @@ namespace ext::oneapi::experimental {
 
 enum class data_placement_enum { blocked, striped };
 
-struct data_placement_key
-    : detail::compile_time_property_key<detail::PropKind::DataPlacement> {
-  template <data_placement_enum Placement>
-  using value_t =
-      property_value<data_placement_key,
-                     // TODO: Extension uses data_placement_enum directly here.
-                     std::integral_constant<int, static_cast<int>(Placement)>>;
+template <data_placement_enum Placement>
+struct data_placement_property
+    : detail::property_base<data_placement_property<Placement>,
+                            detail::PropKind::DataPlacement,
+                            struct data_placement_key> {
+  // If we rely on `operator==` then it's not even necessary to expose this.
+  // static constexpr auto value = Placement;
 };
 
 template <data_placement_enum Placement>
-inline constexpr data_placement_key::value_t<Placement> data_placement;
+inline constexpr data_placement_property<Placement> data_placement;
 
-inline constexpr data_placement_key::value_t<data_placement_enum::blocked>
-    data_placement_blocked;
-inline constexpr data_placement_key::value_t<data_placement_enum::striped>
-    data_placement_striped;
+inline constexpr auto data_placement_blocked =
+    data_placement<data_placement_enum::blocked>;
+inline constexpr auto data_placement_striped =
+    data_placement<data_placement_enum::striped>;
 
 struct contiguous_memory_key
     : detail::compile_time_property_key<detail::PropKind::ContiguousMemory> {

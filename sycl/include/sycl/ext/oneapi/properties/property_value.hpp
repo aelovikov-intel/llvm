@@ -58,14 +58,6 @@ operator!=(const property_value<PropertyT, A...> &,
   return (!std::is_same<A, B>::value || ...);
 }
 
-template <typename V>
-struct is_property_value
-    : std::bool_constant<!is_property_list_v<V> &&
-                         std::is_base_of_v<detail::property_tag, V>> {};
-
-template <typename V>
-inline constexpr bool is_property_value_v = is_property_value<V>::value;
-
 template <typename V, typename O> struct is_property_value_of {
   static constexpr bool value = []() constexpr {
     if constexpr (is_property_value_v<V>)

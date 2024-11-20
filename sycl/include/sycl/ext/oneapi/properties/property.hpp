@@ -230,6 +230,17 @@ template <typename PropertyT> struct PropertyToKind {
 };
 
 struct property_tag {};
+}
+
+template <typename V>
+struct is_property_value
+    : std::bool_constant<!is_property_list_v<V> &&
+                         std::is_base_of_v<detail::property_tag, V>> {};
+
+template <typename V>
+inline constexpr bool is_property_value_v = is_property_value<V>::value;
+
+namespace detail {
 
 // This is used to implement has/get_property via inheritance queries.
 template <typename property_key_t> struct property_key_tag : property_tag {};
@@ -250,6 +261,26 @@ protected:
   static constexpr PropKind Kind = Kind_;
 
   template <typename T> friend struct PropertyToKind;
+
+  template <typename this_property_t, typename other_property_t>
+  friend constexpr std::enable_if_t<
+      std::is_same_v<this_property_t, property_t> &&
+          is_property_value_v<other_property_t> &&
+          std::is_empty_v<this_property_t> && std::is_empty_v<other_property_t>,
+      bool>
+  operator==(const this_property_t &, const other_property_t &) {
+    return std::is_same_v<this_property_t, other_property_t>;
+  }
+
+  template <typename this_property_t, typename other_property_t>
+  friend constexpr std::enable_if_t<
+      std::is_same_v<this_property_t, property_t> &&
+          is_property_value_v<other_property_t> &&
+          std::is_empty_v<this_property_t> && std::is_empty_v<other_property_t>,
+      bool>
+  operator!=(const this_property_t &, const other_property_t &) {
+    return !std::is_same_v<this_property_t, other_property_t>;
+  }
 };
 
 struct property_key_base_tag {};
