@@ -10,7 +10,6 @@
 
 #include <sycl/bit_cast.hpp>              // for bit_cast
 #include <sycl/detail/export.hpp>         // for __SYCL_EXPORT
-#include <sycl/detail/iostream_proxy.hpp> // for istream, ostream
 
 #ifdef __SYCL_DEVICE_ONLY__
 #include <sycl/aspects.hpp>
@@ -475,20 +474,6 @@ public:
 #else
   __SYCL_CONSTEXPR_HALF operator float() const { return half2Float(Data); }
 #endif // __SYCL_DEVICE_ONLY__
-
-  // Operator << and >>
-  inline friend std::ostream &operator<<(std::ostream &O,
-                                         sycl::half const &rhs) {
-    O << static_cast<float>(rhs);
-    return O;
-  }
-
-  inline friend std::istream &operator>>(std::istream &I, sycl::half &rhs) {
-    float ValFloat = 0.0f;
-    I >> ValFloat;
-    rhs = ValFloat;
-    return I;
-  }
 
   template <typename Key> friend struct std::hash;
 

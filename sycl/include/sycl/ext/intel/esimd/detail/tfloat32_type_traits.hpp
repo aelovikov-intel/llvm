@@ -73,10 +73,6 @@ template <> struct scalar_conversion_traits<tfloat32> {
 };
 
 // Misc
-inline std::ostream &operator<<(std::ostream &O, tfloat32 const &rhs) {
-  O << static_cast<float>(rhs);
-  return O;
-}
 
 template <> struct is_esimd_arithmetic_type<tfloat32, void> : std::true_type {};
 

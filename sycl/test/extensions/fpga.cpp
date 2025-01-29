@@ -4,6 +4,7 @@
 #include <sycl/sycl.hpp>
 
 #include <type_traits>
+#include <iostream>
 
 namespace intelfpga {
 template <unsigned ID> struct ethernet_pipe_id {

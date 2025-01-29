@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
+#include <ostream>
 
 namespace sycl {
 inline namespace _V1 {

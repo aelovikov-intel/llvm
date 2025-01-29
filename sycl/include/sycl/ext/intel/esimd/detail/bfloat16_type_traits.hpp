@@ -89,10 +89,6 @@ template <> struct scalar_conversion_traits<bfloat16> {
 // hence no specializations of other traits.
 
 // Misc
-inline std::ostream &operator<<(std::ostream &O, bfloat16 const &rhs) {
-  O << static_cast<float>(rhs);
-  return O;
-}
 
 template <> struct is_esimd_arithmetic_type<bfloat16, void> : std::true_type {};
 

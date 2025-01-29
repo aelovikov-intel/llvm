@@ -15,6 +15,9 @@
 #include <sycl/exception.hpp>
 #include <sycl/info/info_desc.hpp>
 
+#include <sycl/detail/foo.hpp>
+#include <sycl/detail/iostream_proxy.hpp>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>

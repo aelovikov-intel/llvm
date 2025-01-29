@@ -367,7 +367,7 @@ static constexpr std::array<T, N> RepeatValue(const T &Arg) {
 #ifndef NDEBUG
 #define __SYCL_REPORT_EXCEPTION_TO_STREAM(str, e)                              \
   {                                                                            \
-    std::cerr << str << " " << e.what() << std::endl;                          \
+    std::fprintf(stderr, "%s %s\n", str, e.what());                            \
     assert(false);                                                             \
   }
 #else

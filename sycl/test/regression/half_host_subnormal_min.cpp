@@ -5,6 +5,7 @@
 // to and from a floating point value.
 
 #include <sycl/sycl.hpp>
+#include <iostream>
 
 int main() {
   sycl::half SubnormalMin =
