@@ -78,7 +78,6 @@ protected:
   UnsampledImageAccessorBaseHost(const UnsampledImageAccessorImplPtr &Impl)
       : impl{Impl} {}
 
-public:
   UnsampledImageAccessorBaseHost(sycl::range<3> Size, access_mode AccessMode,
                                  void *SYCLMemObject, int Dims, int ElemSize,
                                  id<3> Pitch, image_channel_type ChannelType,
@@ -96,7 +95,6 @@ public:
   image_channel_order getChannelOrder() const;
   const property_list &getPropList() const;
 
-protected:
   template <class Obj>
   friend const decltype(Obj::impl) &
   detail::getSyclObjImpl(const Obj &SyclObject);
@@ -152,7 +150,6 @@ protected:
   SampledImageAccessorBaseHost(const SampledImageAccessorImplPtr &Impl)
       : impl{Impl} {}
 
-public:
   SampledImageAccessorBaseHost(sycl::range<3> Size, void *SYCLMemObject,
                                int Dims, int ElemSize, id<3> Pitch,
                                image_channel_type ChannelType,
@@ -172,7 +169,6 @@ public:
   image_sampler getSampler() const;
   const property_list &getPropList() const;
 
-protected:
   template <class Obj>
   friend const decltype(Obj::impl) &
   detail::getSyclObjImpl(const Obj &SyclObject);
@@ -785,7 +781,7 @@ template <typename DataT, int Dimensions, access_mode AccessMode,
           image_target AccessTarget = image_target::device>
 class __SYCL_EBO unsampled_image_accessor :
 #ifndef __SYCL_DEVICE_ONLY__
-    private detail::UnsampledImageAccessorBaseHost,
+    public detail::UnsampledImageAccessorBaseHost,
 #endif // __SYCL_DEVICE_ONLY__
     public detail::OwnerLessBase<
         unsampled_image_accessor<DataT, Dimensions, AccessMode, AccessTarget>> {
@@ -959,7 +955,7 @@ template <typename DataT, int Dimensions = 1,
               (std::is_const_v<DataT> ? access_mode::read
                                       : access_mode::read_write)>
 class __SYCL_EBO host_unsampled_image_accessor
-    : private detail::UnsampledImageAccessorBaseHost,
+    : public detail::UnsampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_unsampled_image_accessor<DataT, Dimensions, AccessMode>> {
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
@@ -1100,7 +1096,7 @@ template <typename DataT, int Dimensions,
           image_target AccessTarget = image_target::device>
 class __SYCL_EBO sampled_image_accessor :
 #ifndef __SYCL_DEVICE_ONLY__
-    private detail::SampledImageAccessorBaseHost,
+    public detail::SampledImageAccessorBaseHost,
 #endif // __SYCL_DEVICE_ONLY__
     public detail::OwnerLessBase<
         sampled_image_accessor<DataT, Dimensions, AccessTarget>> {
@@ -1247,7 +1243,7 @@ private:
 
 template <typename DataT, int Dimensions>
 class __SYCL_EBO host_sampled_image_accessor
-    : private detail::SampledImageAccessorBaseHost,
+    : public detail::SampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_sampled_image_accessor<DataT, Dimensions>> {
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
