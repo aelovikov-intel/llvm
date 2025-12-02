@@ -517,7 +517,7 @@ class __SYCL_EXPORT AccessorBaseHost
     : public detail::ObjBase<std::shared_ptr<AccessorImplHost>,
                              AccessorBaseHost> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:
@@ -603,7 +603,7 @@ class __SYCL_EBO __SYCL_SPECIAL_CLASS __SYCL_TYPE(accessor) accessor :
         accessor<DataT, Dimensions, AccessMode, AccessTarget, IsPlaceholder,
                  PropertyListT>> {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif
 protected:
   static_assert((AccessTarget == access::target::global_buffer ||
@@ -2435,7 +2435,7 @@ class __SYCL_EBO __SYCL_SPECIAL_CLASS __SYCL_TYPE(local_accessor) local_accessor
       public detail::OwnerLessBase<local_accessor<DataT, Dimensions>> {
 
 #ifndef __SYCL_DEVICE_ONLY__
-  friend typename local_accessor::ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif
 
   using local_acc =
@@ -2612,7 +2612,7 @@ class __SYCL_EBO host_accessor
     : public accessor<DataT, Dimensions, AccessMode, target::host_buffer,
                       access::placeholder::false_t> {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend typename host_accessor::ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif
 protected:
   using AccessorT = accessor<DataT, Dimensions, AccessMode, target::host_buffer,

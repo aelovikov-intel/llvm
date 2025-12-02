@@ -50,7 +50,7 @@ enum class node_type {
 /// Class representing a node in the graph, returned by command_graph::add().
 class __SYCL_EXPORT node
     : public detail::ObjBase<std::shared_ptr<detail::node_impl>, node> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

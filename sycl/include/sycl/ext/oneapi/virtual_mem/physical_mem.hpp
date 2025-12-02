@@ -30,7 +30,7 @@ class __SYCL_EXPORT physical_mem
     : public sycl::detail::ObjBase<
           std::shared_ptr<sycl::detail::physical_mem_impl>, physical_mem>,
       public sycl::detail::OwnerLessBase<physical_mem> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   physical_mem(const device &SyclDevice, const context &SyclContext,

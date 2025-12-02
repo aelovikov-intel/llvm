@@ -94,7 +94,7 @@ struct BufferInterop;
 // The non-template base for the sycl::buffer class
 class __SYCL_EXPORT buffer_plain
     : public ObjBase<std::shared_ptr<buffer_impl>, buffer_plain> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 protected:

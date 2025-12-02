@@ -85,7 +85,7 @@ UnsupportedFeatureToString(UnsupportedGraphFeatures Feature) {
 /// Graph in the modifiable state.
 template <graph_state State = graph_state::modifiable>
 class command_graph : public detail::modifiable_command_graph {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   /// Constructor.

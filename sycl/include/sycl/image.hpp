@@ -170,7 +170,7 @@ inline image_channel_order FormatChannelOrder(image_format Format) {
 class __SYCL_EXPORT image_plain
     : public ObjBase<std::shared_ptr<image_impl>, image_plain> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
   image_plain(image_channel_order Order, image_channel_type Type,
@@ -346,7 +346,7 @@ public:
 // Common base class for unsampled image implementations
 template <int Dimensions, typename AllocatorT>
 class unsampled_image_common : public image_common<Dimensions, AllocatorT> {
-  friend typename unsampled_image_common::ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using common_base = typename detail::image_common<Dimensions, AllocatorT>;
 
 protected:
@@ -427,7 +427,7 @@ private:
 template <int Dimensions = 1, typename AllocatorT = sycl::image_allocator>
 class image : public detail::unsampled_image_common<Dimensions, AllocatorT> {
 private:
-  friend typename image::ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using common_base =
       typename detail::unsampled_image_common<Dimensions, AllocatorT>;
 
@@ -710,7 +710,7 @@ class unsampled_image
     : public detail::unsampled_image_common<Dimensions, AllocatorT>,
       public detail::OwnerLessBase<unsampled_image<Dimensions, AllocatorT>> {
 private:
-  friend typename unsampled_image::ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using common_base =
       typename detail::unsampled_image_common<Dimensions, AllocatorT>;
 
@@ -992,7 +992,7 @@ class sampled_image
     : public detail::image_common<Dimensions, AllocatorT>,
       public detail::OwnerLessBase<sampled_image<Dimensions, AllocatorT>> {
 private:
-  friend typename sampled_image::ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using common_base = typename detail::image_common<Dimensions, AllocatorT>;
 
   sampled_image(const std::shared_ptr<detail::image_impl> &Impl)

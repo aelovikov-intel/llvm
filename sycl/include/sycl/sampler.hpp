@@ -68,7 +68,7 @@ class __SYCL_EXPORT __SYCL_SPECIAL_CLASS __SYCL_TYPE(sampler) sampler
 #endif
 {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif
 public:
   sampler(coordinate_normalization_mode normalizationMode,

@@ -69,7 +69,7 @@ template <typename Type> struct get_kernel_name_t<detail::auto_name, Type> {
 class __SYCL_EXPORT kernel
     : public detail::ObjBase<std::shared_ptr<detail::kernel_impl>, kernel>,
       public detail::OwnerLessBase<kernel> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

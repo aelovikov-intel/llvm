@@ -44,7 +44,7 @@ class event_impl;
 class __SYCL_EXPORT event
     : public detail::ObjBase<std::shared_ptr<detail::event_impl>, event>,
       public detail::OwnerLessBase<event> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

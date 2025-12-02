@@ -61,7 +61,7 @@ private:
 class __SYCL_EXPORT image_mem
     : public detail::ObjBase<std::shared_ptr<detail::image_mem_impl>,
                              image_mem> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using raw_handle_type = image_mem_handle;
 
 public:

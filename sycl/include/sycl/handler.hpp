@@ -419,6 +419,7 @@ template <int Dims> bool range_size_fits_in_size_t(const range<Dims> &r) {
 ///
 /// \ingroup sycl_api
 class __SYCL_EXPORT handler : public detail::ObjBaseTag {
+  friend sycl::detail::ImplUtils;
   // TODO: decide if explicit `std::is_same_v<Obj, handler> in `impl_utils.hpp`
   // would be better than using the tag above.
 private:

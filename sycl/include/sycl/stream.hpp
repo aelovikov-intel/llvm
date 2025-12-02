@@ -834,7 +834,7 @@ class __SYCL_EXPORT __SYCL_SPECIAL_CLASS __SYCL_TYPE(stream) stream :
 #endif
     public detail::OwnerLessBase<stream> {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif
 
 private:

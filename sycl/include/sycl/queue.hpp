@@ -297,7 +297,7 @@ event submit_with_event_impl(const queue &Q, PropertiesT Props,
 class __SYCL_EXPORT queue
     : public detail::ObjBase<std::shared_ptr<detail::queue_impl>, queue>,
       public detail::OwnerLessBase<queue> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

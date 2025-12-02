@@ -48,7 +48,7 @@ class __SYCL_EXPORT dynamic_command_group
     : public detail::ObjBase<
           std::shared_ptr<detail::dynamic_command_group_impl>,
           dynamic_command_group> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   dynamic_command_group(
@@ -73,7 +73,7 @@ namespace detail {
 class __SYCL_EXPORT dynamic_parameter_base
     : public ObjBase<std::shared_ptr<detail::dynamic_parameter_impl>,
                      dynamic_parameter_base> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

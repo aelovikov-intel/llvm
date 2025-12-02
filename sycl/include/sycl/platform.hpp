@@ -65,7 +65,7 @@ class filter_selector;
 class __SYCL_EXPORT platform
     : public detail::ObjBase<std::shared_ptr<detail::platform_impl>, platform>,
       public detail::OwnerLessBase<platform> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

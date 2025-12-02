@@ -67,7 +67,7 @@ enum class peer_access {
 class __SYCL_STANDALONE_DEBUG __SYCL_EXPORT device
     : public detail::ObjBase<std::shared_ptr<detail::device_impl>, device>,
       public detail::OwnerLessBase<device> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

@@ -37,7 +37,7 @@ class __SYCL_EXPORT executable_command_graph
     : public ObjBase<std::shared_ptr<exec_graph_impl>,
                      executable_command_graph>,
       public OwnerLessBase<executable_command_graph> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   /// An executable command-graph is not user constructable.

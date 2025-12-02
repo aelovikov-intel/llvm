@@ -45,7 +45,7 @@ class __SYCL_EXPORT modifiable_command_graph
     : public ObjBase<std::shared_ptr<graph_impl>, modifiable_command_graph>,
       public OwnerLessBase<modifiable_command_graph> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

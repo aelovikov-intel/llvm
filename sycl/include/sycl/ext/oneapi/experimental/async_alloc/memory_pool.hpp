@@ -26,7 +26,7 @@ class memory_pool_impl;
 class __SYCL_EXPORT memory_pool
     : public detail::ObjBase<std::shared_ptr<detail::memory_pool_impl>,
                              memory_pool> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:

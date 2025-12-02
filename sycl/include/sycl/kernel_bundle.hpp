@@ -70,7 +70,7 @@ class __SYCL_EXPORT kernel_id
     : public detail::ObjBase<std::shared_ptr<detail::kernel_id_impl>,
                              kernel_id>,
       public detail::OwnerLessBase<kernel_id> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
 public:
@@ -95,7 +95,7 @@ class device_image_impl;
 class __SYCL_EXPORT device_image_plain
     : public ObjBase<std::shared_ptr<device_image_impl>, device_image_plain> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   device_image_plain(const std::shared_ptr<device_image_impl> &Impl)
@@ -137,7 +137,7 @@ protected:
 template <sycl::bundle_state State>
 class device_image : public detail::device_image_plain,
                      public detail::OwnerLessBase<device_image<State>> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   device_image() = delete;
@@ -195,7 +195,7 @@ class __SYCL_EXPORT kernel_bundle_plain
     : public ObjBase<std::shared_ptr<detail::kernel_bundle_impl>,
                      kernel_bundle_plain> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   kernel_bundle_plain(const detail::KernelBundleImplPtr &Impl)
@@ -299,7 +299,7 @@ private:
 template <bundle_state State>
 class kernel_bundle : public detail::kernel_bundle_plain,
                       public detail::OwnerLessBase<kernel_bundle<State>> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 
 public:
   using device_image_iterator = const device_image<State> *;

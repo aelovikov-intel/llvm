@@ -77,7 +77,7 @@ class __SYCL_EXPORT UnsampledImageAccessorBaseHost
     : public ObjBase<std::shared_ptr<UnsampledImageAccessorImplHost>,
                      UnsampledImageAccessorBaseHost> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
   UnsampledImageAccessorBaseHost(sycl::range<3> Size, access_mode AccessMode,
@@ -137,7 +137,7 @@ class __SYCL_EXPORT SampledImageAccessorBaseHost
     : public ObjBase<std::shared_ptr<SampledImageAccessorImplHost>,
                      SampledImageAccessorBaseHost> {
 protected:
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   using ObjBaseT::ObjBaseT;
 
   SampledImageAccessorBaseHost(sycl::range<3> Size, void *SYCLMemObject,
@@ -762,7 +762,7 @@ class __SYCL_EBO unsampled_image_accessor :
     public detail::OwnerLessBase<
         unsampled_image_accessor<DataT, Dimensions, AccessMode, AccessTarget>> {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif // __SYCL_DEVICE_ONLY__
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
@@ -925,7 +925,7 @@ class __SYCL_EBO host_unsampled_image_accessor
     : public detail::UnsampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_unsampled_image_accessor<DataT, Dimensions, AccessMode>> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
@@ -1057,7 +1057,7 @@ class __SYCL_EBO sampled_image_accessor :
     public detail::OwnerLessBase<
         sampled_image_accessor<DataT, Dimensions, AccessTarget>> {
 #ifndef __SYCL_DEVICE_ONLY__
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
 #endif // __SYCL_DEVICE_ONLY__
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
@@ -1193,7 +1193,7 @@ class __SYCL_EBO host_sampled_image_accessor
     : public detail::SampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_sampled_image_accessor<DataT, Dimensions>> {
-  friend ObjBaseT;
+  friend sycl::detail::ImplUtils;
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
