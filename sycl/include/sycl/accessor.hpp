@@ -513,9 +513,12 @@ class SYCLMemObjI;
 
 using AccessorImplPtr = std::shared_ptr<AccessorImplHost>;
 
-class __SYCL_EXPORT AccessorBaseHost {
+class __SYCL_EXPORT AccessorBaseHost
+    : public detail::ObjBase<std::shared_ptr<AccessorImplHost>,
+                             AccessorBaseHost> {
 protected:
-  AccessorBaseHost(const AccessorImplPtr &Impl) : impl{Impl} {}
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
 
 public:
   AccessorBaseHost(id<3> Offset, range<3> AccessRange, range<3> MemoryRange,
@@ -550,21 +553,9 @@ public:
 
   void *getMemoryObject() const;
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   template <typename, int, access::mode, access::target, access::placeholder,
             typename>
   friend class accessor;
-
-  AccessorImplPtr impl;
 
 private:
   friend class sycl::ext::intel::esimd::detail::AccessorPrivateProxy;
@@ -573,9 +564,11 @@ private:
 class LocalAccessorImplHost;
 using LocalAccessorImplPtr = std::shared_ptr<LocalAccessorImplHost>;
 
-class __SYCL_EXPORT LocalAccessorBaseHost {
+class __SYCL_EXPORT LocalAccessorBaseHost
+    : public ObjBase<std::shared_ptr<LocalAccessorImplHost>,
+                     LocalAccessorBaseHost> {
 protected:
-  LocalAccessorBaseHost(const LocalAccessorImplPtr &Impl) : impl{Impl} {}
+  using ObjBaseT::ObjBaseT;
 
 public:
   LocalAccessorBaseHost(sycl::range<3> Size, int Dims, int ElemSize,
@@ -587,20 +580,6 @@ public:
   int getNumOfDims();
   int getElementSize();
   const property_list &getPropList() const;
-
-protected:
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
-  LocalAccessorImplPtr impl;
 };
 } // namespace detail
 
@@ -623,6 +602,9 @@ class __SYCL_EBO __SYCL_SPECIAL_CLASS __SYCL_TYPE(accessor) accessor :
     public detail::OwnerLessBase<
         accessor<DataT, Dimensions, AccessMode, AccessTarget, IsPlaceholder,
                  PropertyListT>> {
+#ifndef __SYCL_DEVICE_ONLY__
+  friend ObjBaseT;
+#endif
 protected:
   static_assert((AccessTarget == access::target::global_buffer ||
                  AccessTarget == access::target::constant_buffer ||
@@ -853,17 +835,6 @@ public:
 private:
   friend class sycl::stream;
   friend class sycl::ext::intel::esimd::detail::AccessorPrivateProxy;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 
 public:
   // 4.7.6.9.1. Interface for buffer command accessors
@@ -2249,17 +2220,6 @@ protected:
     return Result;
   }
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   template <typename DataT_, int Dimensions_> friend class local_accessor;
 
 public:
@@ -2474,6 +2434,10 @@ class __SYCL_EBO __SYCL_SPECIAL_CLASS __SYCL_TYPE(local_accessor) local_accessor
                                  access::placeholder::false_t>,
       public detail::OwnerLessBase<local_accessor<DataT, Dimensions>> {
 
+#ifndef __SYCL_DEVICE_ONLY__
+  friend typename local_accessor::ObjBaseT;
+#endif
+
   using local_acc =
       local_accessor_base<DataT, Dimensions,
                           detail::accessModeFromConstness<DataT>(),
@@ -2647,6 +2611,9 @@ template <typename DataT, int Dimensions = 1,
 class __SYCL_EBO host_accessor
     : public accessor<DataT, Dimensions, AccessMode, target::host_buffer,
                       access::placeholder::false_t> {
+#ifndef __SYCL_DEVICE_ONLY__
+  friend typename host_accessor::ObjBaseT;
+#endif
 protected:
   using AccessorT = accessor<DataT, Dimensions, AccessMode, target::host_buffer,
                              access::placeholder::false_t>;
@@ -2671,16 +2638,6 @@ protected:
   host_accessor(const detail::AccessorImplPtr &Impl)
       : accessor<DataT, Dimensions, AccessMode, target::host_buffer,
                  access::placeholder::false_t>{Impl} {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 #endif // __SYCL_DEVICE_ONLY__
 
 public:

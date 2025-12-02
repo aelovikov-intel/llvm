@@ -41,7 +41,12 @@ class event_impl;
 /// kernels and signaling barriers.
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT event : public detail::OwnerLessBase<event> {
+class __SYCL_EXPORT event
+    : public detail::ObjBase<std::shared_ptr<detail::event_impl>, event>,
+      public detail::OwnerLessBase<event> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
   /// Constructs a ready SYCL event.
   ///
@@ -136,24 +141,9 @@ public:
   backend get_backend() const noexcept;
 
 private:
-  event(std::shared_ptr<detail::event_impl> EventImpl);
-
   ur_native_handle_t getNative() const;
 
   std::vector<ur_native_handle_t> getNativeVector() const;
-
-  std::shared_ptr<detail::event_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 
   template <backend BackendName, class SyclObjectT>
   friend auto get_native(const SyclObjectT &Obj)

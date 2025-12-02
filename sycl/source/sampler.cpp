@@ -17,11 +17,11 @@ inline namespace _V1 {
 sampler::sampler(coordinate_normalization_mode normalizationMode,
                  addressing_mode addressingMode, filtering_mode filteringMode,
                  const property_list &propList)
-    : impl(std::make_shared<detail::sampler_impl>(
+    : ObjBaseT(std::make_shared<detail::sampler_impl>(
           normalizationMode, addressingMode, filteringMode, propList)) {}
 
 sampler::sampler(cl_sampler clSampler, const context &syclContext)
-    : impl(std::make_shared<detail::sampler_impl>(
+    : ObjBaseT(std::make_shared<detail::sampler_impl>(
           clSampler, *detail::getSyclObjImpl(syclContext))) {}
 
 addressing_mode sampler::get_addressing_mode() const {

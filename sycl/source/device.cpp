@@ -32,24 +32,27 @@ void force_type(info::device_type &t, const info::device_type &ft) {
 
 device::device() : device(default_selector_v) {}
 
-device::device(cl_device_id DeviceId) {
-  detail::adapter_impl &Adapter =
-      sycl::detail::ur::getAdapter<backend::opencl>();
-  // The implementation constructor takes ownership of the native handle so we
-  // must retain it in order to adhere to SYCL 1.2.1 spec (Rev6, section 4.3.1.)
-  ur_device_handle_t Device;
-  Adapter.call<detail::UrApiKind::urDeviceCreateWithNativeHandle>(
-      detail::ur::cast<ur_native_handle_t>(DeviceId), Adapter.getUrAdapter(),
-      nullptr, &Device);
-  impl = detail::platform_impl::getPlatformFromUrDevice(Device, Adapter)
-             .getOrMakeDeviceImpl(Device)
-             .shared_from_this();
-  __SYCL_OCL_CALL(clRetainDevice, DeviceId);
-}
+device::device(cl_device_id DeviceId)
+    : ObjBaseT([=]() {
+        detail::adapter_impl &Adapter =
+            sycl::detail::ur::getAdapter<backend::opencl>();
+        // The implementation constructor takes ownership of the native handle
+        // so we must retain it in order to adhere to SYCL 1.2.1 spec (Rev6,
+        // section 4.3.1.)
+        ur_device_handle_t Device;
+        Adapter.call<detail::UrApiKind::urDeviceCreateWithNativeHandle>(
+            detail::ur::cast<ur_native_handle_t>(DeviceId),
+            Adapter.getUrAdapter(), nullptr, &Device);
+        std::shared_ptr<detail::device_impl> impl =
+            detail::platform_impl::getPlatformFromUrDevice(Device, Adapter)
+                .getOrMakeDeviceImpl(Device)
+                .shared_from_this();
+        __SYCL_OCL_CALL(clRetainDevice, DeviceId);
+        return impl;
+      }()) {}
 
-device::device(const device_selector &deviceSelector) {
-  *this = deviceSelector.select_device();
-}
+device::device(const device_selector &deviceSelector)
+    : device(deviceSelector.select_device()) {}
 
 std::vector<device> device::get_devices(info::device_type deviceType) {
   std::vector<device> devices;

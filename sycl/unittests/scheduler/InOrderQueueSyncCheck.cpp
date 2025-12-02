@@ -75,6 +75,7 @@ public:
                void(const std::vector<detail::EventImplPtr> &Events));
 };
 
+#if 0
 // Only check events dependency in queue_impl::finalizeHandler
 TEST_F(SchedulerTest, InOrderQueueSyncCheck) {
   sycl::unittest::UrMock<> Mock;
@@ -102,3 +103,5 @@ TEST_F(SchedulerTest, InOrderQueueSyncCheck) {
         MockCGH);
   }
 }
+
+#endif

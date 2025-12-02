@@ -38,7 +38,7 @@ stream::stream(size_t BufferSize, size_t MaxStatementSize, handler &CGH)
 
 stream::stream(size_t BufferSize, size_t MaxStatementSize, handler &CGH,
                const property_list &PropList)
-    : impl(std::make_shared<detail::stream_impl>(
+    : ObjBaseT(std::make_shared<detail::stream_impl>(
           BufferSize, CheckMaxStatementSize(MaxStatementSize), PropList)),
       GlobalBuf(impl->accessGlobalBuf(CGH)),
       GlobalOffset(impl->accessGlobalOffset(CGH)),

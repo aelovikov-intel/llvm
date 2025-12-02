@@ -17,17 +17,19 @@ namespace sycl {
 inline namespace _V1 {
 
 // TODO(pi2ur): Don't cast straight from cl_kernel below
-kernel::kernel(cl_kernel ClKernel, const context &SyclContext) {
-  using namespace sycl::detail;
-  adapter_impl &Adapter = ur::getAdapter<backend::opencl>();
-  Managed<ur_kernel_handle_t> hKernel{Adapter};
-  ur_native_handle_t nativeHandle =
-      reinterpret_cast<ur_native_handle_t>(ClKernel);
-  Adapter.call<errc::invalid, UrApiKind::urKernelCreateWithNativeHandle>(
-      nativeHandle, getSyclObjImpl(SyclContext)->getHandleRef(), nullptr,
-      nullptr, &hKernel);
-  impl = std::make_shared<kernel_impl>(
-      std::move(hKernel), *getSyclObjImpl(SyclContext), nullptr, nullptr);
+kernel::kernel(cl_kernel ClKernel, const context &SyclContext)
+    : ObjBaseT([&]() {
+        using namespace sycl::detail;
+        adapter_impl &Adapter = ur::getAdapter<backend::opencl>();
+        Managed<ur_kernel_handle_t> hKernel{Adapter};
+        ur_native_handle_t nativeHandle =
+            reinterpret_cast<ur_native_handle_t>(ClKernel);
+        Adapter.call<errc::invalid, UrApiKind::urKernelCreateWithNativeHandle>(
+            nativeHandle, getSyclObjImpl(SyclContext)->getHandleRef(), nullptr,
+            nullptr, &hKernel);
+        return std::make_shared<kernel_impl>(
+            std::move(hKernel), *getSyclObjImpl(SyclContext), nullptr, nullptr);
+      }()) {
   // This is a special interop constructor for OpenCL, so the kernel must be
   // retained.
   if (get_backend() == backend::opencl) {
@@ -240,8 +242,6 @@ template __SYCL_EXPORT typename ext::oneapi::experimental::info::
 __SYCL_PARAM_TRAITS_SPEC(ext::oneapi::experimental, kernel_queue_specific, max_num_work_groups, size_t)
 // clang-format on
 #undef __SYCL_PARAM_TRAITS_SPEC
-
-kernel::kernel(std::shared_ptr<detail::kernel_impl> Impl) : impl(Impl) {}
 
 ur_native_handle_t kernel::getNative() const { return impl->getNative(); }
 

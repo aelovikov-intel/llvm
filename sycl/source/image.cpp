@@ -15,119 +15,108 @@ namespace detail {
 image_plain::image_plain(image_channel_order Order, image_channel_type Type,
                          const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(
-      Order, Type, Range, std::move(Allocator), Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          Order, Type, Range, std::move(Allocator), Dimensions, PropList)) {}
 
 image_plain::image_plain(image_channel_order Order, image_channel_type Type,
                          const range<3> &Range, const range<2> &Pitch,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(
-      Order, Type, Range, Pitch, std::move(Allocator), Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          Order, Type, Range, Pitch, std::move(Allocator), Dimensions,
+          PropList)) {}
 
 image_plain::image_plain(void *HostPointer, image_channel_order Order,
                          image_channel_type Type, const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Range,
-                                              std::move(Allocator), Dimensions,
-                                              PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Range, std::move(Allocator), Dimensions,
+          PropList)) {}
 
 image_plain::image_plain(const void *HostPointer, image_channel_order Order,
                          image_channel_type Type, const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Range,
-                                              std::move(Allocator), Dimensions,
-                                              PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Range, std::move(Allocator), Dimensions,
+          PropList)) {}
 
 image_plain::image_plain(void *HostPointer, image_channel_order Order,
                          image_channel_type Type, const range<3> &Range,
                          const range<2> &Pitch,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Range,
-                                              Pitch, std::move(Allocator),
-                                              Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Range, Pitch, std::move(Allocator),
+          Dimensions, PropList)) {}
 
 image_plain::image_plain(const std::shared_ptr<const void> &HostPointer,
                          image_channel_order Order, image_channel_type Type,
                          const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
                          uint8_t Dimensions, const property_list &PropList,
-                         bool IsConstPtr) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Range,
-                                              std::move(Allocator), Dimensions,
-                                              PropList, IsConstPtr);
-}
+                         bool IsConstPtr)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Range, std::move(Allocator), Dimensions,
+          PropList, IsConstPtr)) {}
 
 image_plain::image_plain(const std::shared_ptr<const void> &HostPointer,
                          image_channel_order Order, image_channel_type Type,
                          const range<3> &Range, const range<2> &Pitch,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
                          uint8_t Dimensions, const property_list &PropList,
-                         bool IsConstPtr) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Range,
-                                              Pitch, std::move(Allocator),
-                                              Dimensions, PropList, IsConstPtr);
-}
+                         bool IsConstPtr)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Range, Pitch, std::move(Allocator),
+          Dimensions, PropList, IsConstPtr)) {}
 
 image_plain::image_plain(const void *HostPointer, image_channel_order Order,
                          image_channel_type Type, image_sampler Sampler,
                          const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Sampler,
-                                              Range, std::move(Allocator),
-                                              Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Sampler, Range, std::move(Allocator),
+          Dimensions, PropList)) {}
 
 image_plain::image_plain(const void *HostPointer, image_channel_order Order,
                          image_channel_type Type, image_sampler Sampler,
                          const range<3> &Range, const range<2> &Pitch,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(
-      HostPointer, Order, Type, Sampler, Range, Pitch, std::move(Allocator),
-      Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Sampler, Range, Pitch, std::move(Allocator),
+          Dimensions, PropList)) {}
 
 image_plain::image_plain(const std::shared_ptr<const void> &HostPointer,
                          image_channel_order Order, image_channel_type Type,
                          image_sampler Sampler, const range<3> &Range,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(HostPointer, Order, Type, Sampler,
-                                              Range, std::move(Allocator),
-                                              Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Sampler, Range, std::move(Allocator),
+          Dimensions, PropList)) {}
 
 image_plain::image_plain(const std::shared_ptr<const void> &HostPointer,
                          image_channel_order Order, image_channel_type Type,
                          image_sampler Sampler, const range<3> &Range,
                          const range<2> &Pitch,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions, const property_list &PropList) {
-  impl = std::make_shared<detail::image_impl>(
-      HostPointer, Order, Type, Sampler, Range, Pitch, std::move(Allocator),
-      Dimensions, PropList);
-}
+                         uint8_t Dimensions, const property_list &PropList)
+    : image_plain(std::make_shared<detail::image_impl>(
+          HostPointer, Order, Type, Sampler, Range, Pitch, std::move(Allocator),
+          Dimensions, PropList)) {}
 
 #ifdef __SYCL_INTERNAL_API
 image_plain::image_plain(cl_mem ClMemObject, const context &SyclContext,
                          event AvailableEvent,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
-                         uint8_t Dimensions) {
-  impl = std::make_shared<detail::image_impl>(ClMemObject, SyclContext,
-                                              AvailableEvent,
-                                              std::move(Allocator), Dimensions);
-}
+                         uint8_t Dimensions)
+    : image_plain(std::make_shared<detail::image_impl>(
+          ClMemObject, SyclContext, AvailableEvent, std::move(Allocator),
+          Dimensions)) {}
 #endif
 
 image_plain::image_plain(ur_native_handle_t MemObject,
@@ -135,11 +124,10 @@ image_plain::image_plain(ur_native_handle_t MemObject,
                          std::unique_ptr<SYCLMemObjAllocator> Allocator,
                          uint8_t Dimensions, image_channel_order Order,
                          image_channel_type Type, bool OwnNativeHandle,
-                         range<3> Range3WithOnes) {
-  impl = std::make_shared<detail::image_impl>(
-      MemObject, SyclContext, AvailableEvent, std::move(Allocator), Dimensions,
-      Order, Type, OwnNativeHandle, Range3WithOnes);
-}
+                         range<3> Range3WithOnes)
+    : image_plain(std::make_shared<detail::image_impl>(
+          MemObject, SyclContext, AvailableEvent, std::move(Allocator),
+          Dimensions, Order, Type, OwnNativeHandle, Range3WithOnes)) {}
 
 range<3> image_plain::get_range() const { return impl->get_range(); }
 

@@ -45,26 +45,28 @@ AccessorBaseHost::AccessorBaseHost(id<3> Offset, range<3> AccessRange,
                                    access::mode AccessMode, void *SYCLMemObject,
                                    int Dims, int ElemSize, size_t OffsetInBytes,
                                    bool IsSubBuffer,
-                                   const property_list &PropertyList) {
-  verifyAccessorProps(PropertyList);
-  impl = std::make_shared<AccessorImplHost>(
-      Offset, AccessRange, MemoryRange, AccessMode,
-      (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize, false,
-      OffsetInBytes, IsSubBuffer, PropertyList);
-}
+                                   const property_list &PropertyList)
+    : ObjBaseT([&]() {
+        verifyAccessorProps(PropertyList);
+        return std::make_shared<AccessorImplHost>(
+            Offset, AccessRange, MemoryRange, AccessMode,
+            (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize, false,
+            OffsetInBytes, IsSubBuffer, PropertyList);
+      }()) {}
 
 AccessorBaseHost::AccessorBaseHost(id<3> Offset, range<3> AccessRange,
                                    range<3> MemoryRange,
                                    access::mode AccessMode, void *SYCLMemObject,
                                    int Dims, int ElemSize, bool IsPlaceH,
                                    size_t OffsetInBytes, bool IsSubBuffer,
-                                   const property_list &PropertyList) {
-  verifyAccessorProps(PropertyList);
-  impl = std::shared_ptr<AccessorImplHost>(
-      new AccessorImplHost(Offset, AccessRange, MemoryRange, AccessMode,
-                           (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize,
-                           IsPlaceH, OffsetInBytes, IsSubBuffer, PropertyList));
-}
+                                   const property_list &PropertyList)
+    : ObjBaseT([&]() {
+        verifyAccessorProps(PropertyList);
+        return std::make_shared<AccessorImplHost>(
+            Offset, AccessRange, MemoryRange, AccessMode,
+            (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize, IsPlaceH,
+            OffsetInBytes, IsSubBuffer, PropertyList);
+      }()) {}
 
 id<3> &AccessorBaseHost::getOffset() { return impl->MOffset; }
 range<3> &AccessorBaseHost::getAccessRange() { return impl->MAccessRange; }
@@ -98,13 +100,15 @@ bool AccessorBaseHost::isMemoryObjectUsedByGraph() const {
   return static_cast<detail::SYCLMemObjT *>(impl->MSYCLMemObj)->isUsedInGraph();
 }
 
-LocalAccessorBaseHost::LocalAccessorBaseHost(
-    sycl::range<3> Size, int Dims, int ElemSize,
-    const property_list &PropertyList) {
-  verifyAccessorProps(PropertyList);
-  impl = std::shared_ptr<LocalAccessorImplHost>(
-      new LocalAccessorImplHost(Size, Dims, ElemSize, PropertyList));
-}
+LocalAccessorBaseHost::LocalAccessorBaseHost(sycl::range<3> Size, int Dims,
+                                             int ElemSize,
+                                             const property_list &PropertyList)
+    : LocalAccessorBaseHost([&]() {
+        verifyAccessorProps(PropertyList);
+        return std::make_shared<LocalAccessorImplHost>(Size, Dims, ElemSize,
+                                                       PropertyList);
+      }()) {}
+
 sycl::range<3> &LocalAccessorBaseHost::getSize() { return impl->MSize; }
 const sycl::range<3> &LocalAccessorBaseHost::getSize() const {
   return impl->MSize;
@@ -141,12 +145,13 @@ int LocalAccessorBaseHost::getElementSize() { return impl->MElemSize; }
 UnsampledImageAccessorBaseHost::UnsampledImageAccessorBaseHost(
     sycl::range<3> Size, access_mode AccessMode, void *SYCLMemObject, int Dims,
     int ElemSize, id<3> Pitch, image_channel_type ChannelType,
-    image_channel_order ChannelOrder, const property_list &PropertyList) {
-  verifyAccessorProps(PropertyList);
-  impl = std::make_shared<UnsampledImageAccessorImplHost>(
-      Size, AccessMode, (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize,
-      Pitch, ChannelType, ChannelOrder, PropertyList);
-}
+    image_channel_order ChannelOrder, const property_list &PropertyList)
+    : UnsampledImageAccessorBaseHost([&]() {
+        verifyAccessorProps(PropertyList);
+        return std::make_shared<UnsampledImageAccessorImplHost>(
+            Size, AccessMode, (detail::SYCLMemObjI *)SYCLMemObject, Dims,
+            ElemSize, Pitch, ChannelType, ChannelOrder, PropertyList);
+      }()) {}
 const sycl::range<3> &UnsampledImageAccessorBaseHost::getSize() const {
   return impl->MAccessRange;
 }
@@ -179,16 +184,17 @@ SampledImageAccessorBaseHost::SampledImageAccessorBaseHost(
     sycl::range<3> Size, void *SYCLMemObject, int Dims, int ElemSize,
     id<3> Pitch, image_channel_type ChannelType,
     image_channel_order ChannelOrder, image_sampler Sampler,
-    const property_list &PropertyList) {
-  {
-    auto NoAllowedPropertiesCheck = [](int) { return false; };
-    detail::PropertyValidator::checkPropsAndThrow(
-        PropertyList, NoAllowedPropertiesCheck, NoAllowedPropertiesCheck);
-  }
-  impl = std::make_shared<SampledImageAccessorImplHost>(
-      Size, (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize, Pitch,
-      ChannelType, ChannelOrder, Sampler, PropertyList);
-}
+    const property_list &PropertyList)
+    : SampledImageAccessorBaseHost([&]() {
+        {
+          auto NoAllowedPropertiesCheck = [](int) { return false; };
+          detail::PropertyValidator::checkPropsAndThrow(
+              PropertyList, NoAllowedPropertiesCheck, NoAllowedPropertiesCheck);
+        }
+        return std::make_shared<SampledImageAccessorImplHost>(
+            Size, (detail::SYCLMemObjI *)SYCLMemObject, Dims, ElemSize, Pitch,
+            ChannelType, ChannelOrder, Sampler, PropertyList);
+      }()) {}
 const sycl::range<3> &SampledImageAccessorBaseHost::getSize() const {
   return impl->MAccessRange;
 }

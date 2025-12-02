@@ -92,7 +92,11 @@ template <backend Backend, typename DataT, int Dimensions,
 struct BufferInterop;
 
 // The non-template base for the sycl::buffer class
-class __SYCL_EXPORT buffer_plain {
+class __SYCL_EXPORT buffer_plain
+    : public ObjBase<std::shared_ptr<buffer_impl>, buffer_plain> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 protected:
   buffer_plain(size_t SizeInBytes, size_t, const property_list &Props,
                std::unique_ptr<detail::SYCLMemObjAllocator> Allocator);
@@ -122,8 +126,6 @@ protected:
   buffer_plain(ur_native_handle_t MemObject, const context &SyclContext,
                std::unique_ptr<detail::SYCLMemObjAllocator> Allocator,
                bool OwnNativeHandle, const event &AvailableEvent);
-
-  buffer_plain(const std::shared_ptr<detail::buffer_impl> &impl) : impl(impl) {}
 
   void set_final_data_internal();
 
@@ -157,8 +159,6 @@ protected:
   size_t getSize() const;
 
   void handleRelease() const;
-
-  std::shared_ptr<detail::buffer_impl> impl;
 
   const property_list &getPropList() const;
 };
@@ -730,9 +730,6 @@ protected:
   }
 
 private:
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
   template <typename A, int dims, typename C, typename Enable>
   friend class buffer;
   template <typename DataT, int dims, access::mode mode, access::target target,

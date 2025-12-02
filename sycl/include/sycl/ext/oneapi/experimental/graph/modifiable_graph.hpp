@@ -38,9 +38,16 @@ namespace detail {
 // Forward declarations
 class graph_impl;
 
+using namespace sycl::detail;
+
 // Templateless modifiable command-graph base class.
 class __SYCL_EXPORT modifiable_command_graph
-    : public sycl::detail::OwnerLessBase<modifiable_command_graph> {
+    : public ObjBase<std::shared_ptr<graph_impl>, modifiable_command_graph>,
+      public OwnerLessBase<modifiable_command_graph> {
+protected:
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
   /// Constructor.
   /// @param SyclContext Context to use for graph.
@@ -172,11 +179,6 @@ public:
   }
 
 protected:
-  /// Constructor used internally by the runtime.
-  /// @param Impl Detail implementation class to construct object with.
-  modifiable_command_graph(const std::shared_ptr<detail::graph_impl> &Impl)
-      : impl(Impl) {}
-
   /// Template-less implementation of add() for dynamic command-group nodes.
   /// @param DynCGF Dynamic Command-group function object to add.
   /// @param Dep List of predecessor nodes.
@@ -201,17 +203,6 @@ protected:
   void addGraphLeafDependencies(node Node);
 
   void print_graph(sycl::detail::string_view path, bool verbose = false) const;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
-  template <class T>
-  friend T sycl::detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T sycl::detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-  std::shared_ptr<detail::graph_impl> impl;
 
   static void checkNodePropertiesAndThrow(const property_list &Properties);
 };

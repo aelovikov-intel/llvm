@@ -70,10 +70,9 @@ detail::image_mem_impl::~image_mem_impl() {
 __SYCL_EXPORT
 image_mem::image_mem(const image_descriptor &desc,
                      const sycl::device &syclDevice,
-                     const sycl::context &syclContext) {
-  impl =
-      std::make_shared<detail::image_mem_impl>(desc, syclDevice, syclContext);
-}
+                     const sycl::context &syclContext)
+    : ObjBaseT(std::make_shared<detail::image_mem_impl>(desc, syclDevice,
+                                                        syclContext)) {}
 
 __SYCL_EXPORT
 image_mem::image_mem(const image_descriptor &desc, const sycl::queue &syclQueue)

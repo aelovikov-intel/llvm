@@ -1848,17 +1848,17 @@ void exec_graph_impl::updateURImpl(ur_exp_command_buffer_handle_t CommandBuffer,
 modifiable_command_graph::modifiable_command_graph(
     const sycl::context &SyclContext, const sycl::device &SyclDevice,
     const sycl::property_list &PropList)
-    : impl(std::make_shared<detail::graph_impl>(SyclContext, SyclDevice,
-                                                PropList)) {}
+    : ObjBaseT(std::make_shared<detail::graph_impl>(SyclContext, SyclDevice,
+                                                    PropList)) {}
 
 modifiable_command_graph::modifiable_command_graph(
     const sycl::queue &SyclQueue, const sycl::property_list &PropList)
-    : impl(std::make_shared<detail::graph_impl>(
+    : ObjBaseT(std::make_shared<detail::graph_impl>(
           SyclQueue.get_context(), SyclQueue.get_device(), PropList)) {}
 
 modifiable_command_graph::modifiable_command_graph(
     const sycl::device &SyclDevice, const sycl::property_list &PropList)
-    : impl(std::make_shared<detail::graph_impl>(
+    : ObjBaseT(std::make_shared<detail::graph_impl>(
           SyclDevice.get_platform().khr_get_default_context(), SyclDevice,
           PropList)) {}
 
@@ -2044,7 +2044,8 @@ void modifiable_command_graph::checkNodePropertiesAndThrow(
 executable_command_graph::executable_command_graph(
     const std::shared_ptr<detail::graph_impl> &Graph, const sycl::context &Ctx,
     const property_list &PropList)
-    : impl(std::make_shared<detail::exec_graph_impl>(Ctx, Graph, PropList)) {
+    : ObjBaseT(
+          std::make_shared<detail::exec_graph_impl>(Ctx, Graph, PropList)) {
   finalizeImpl(); // Create backend representation for executable graph
   // Mark that we have created an executable graph from the modifiable graph.
   Graph->markExecGraphCreated();

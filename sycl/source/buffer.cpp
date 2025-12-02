@@ -13,54 +13,47 @@ namespace detail {
 
 buffer_plain::buffer_plain(
     size_t SizeInBytes, size_t RequiredAlign, const property_list &Props,
-    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator) {
-
-  impl = std::make_shared<detail::buffer_impl>(SizeInBytes, RequiredAlign,
-                                               Props, std::move(Allocator));
-}
+    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          SizeInBytes, RequiredAlign, Props, std::move(Allocator))) {}
 
 buffer_plain::buffer_plain(
     void *HostData, size_t SizeInBytes, size_t RequiredAlign,
     const sycl::property_list &Props,
-    std::unique_ptr<sycl::detail::SYCLMemObjAllocator> Allocator) {
-  impl = std::make_shared<detail::buffer_impl>(
-      HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator));
-}
+    std::unique_ptr<sycl::detail::SYCLMemObjAllocator> Allocator)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator))) {}
 
 buffer_plain::buffer_plain(
     const void *HostData, size_t SizeInBytes, size_t RequiredAlign,
     const property_list &Props,
-    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator) {
-  impl = std::make_shared<detail::buffer_impl>(
-      HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator));
-}
+    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator))) {}
 
 buffer_plain::buffer_plain(
     const std::shared_ptr<const void> &HostData, const size_t SizeInBytes,
     size_t RequiredAlign, const property_list &Props,
-    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator, bool IsConstPtr) {
-  impl = std::make_shared<detail::buffer_impl>(
-      HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator),
-      IsConstPtr);
-}
+    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator, bool IsConstPtr)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          HostData, SizeInBytes, RequiredAlign, Props, std::move(Allocator),
+          IsConstPtr)) {}
 
 buffer_plain::buffer_plain(
     const std::function<void(void *)> &CopyFromInput, const size_t SizeInBytes,
     size_t RequiredAlign, const property_list &Props,
-    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator, bool IsConstPtr) {
-  impl = std::make_shared<detail::buffer_impl>(
-      CopyFromInput, SizeInBytes, RequiredAlign, Props, std::move(Allocator),
-      IsConstPtr);
-}
+    std::unique_ptr<detail::SYCLMemObjAllocator> Allocator, bool IsConstPtr)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          CopyFromInput, SizeInBytes, RequiredAlign, Props,
+          std::move(Allocator), IsConstPtr)) {}
 
 buffer_plain::buffer_plain(
     ur_native_handle_t MemObject, const context &SyclContext,
     std::unique_ptr<detail::SYCLMemObjAllocator> Allocator,
-    bool OwnNativeHandle, const event &AvailableEvent) {
-  impl = std::make_shared<detail::buffer_impl>(MemObject, SyclContext,
-                                               std::move(Allocator),
-                                               OwnNativeHandle, AvailableEvent);
-}
+    bool OwnNativeHandle, const event &AvailableEvent)
+    : buffer_plain(std::make_shared<detail::buffer_impl>(
+          MemObject, SyclContext, std::move(Allocator), OwnNativeHandle,
+          AvailableEvent)) {}
 
 void buffer_plain::set_final_data_internal() { impl->set_final_data(nullptr); }
 

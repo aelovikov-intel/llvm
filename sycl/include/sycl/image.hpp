@@ -167,9 +167,11 @@ inline image_channel_order FormatChannelOrder(image_format Format) {
 }
 
 // The non-template base for the sycl::image class
-class __SYCL_EXPORT image_plain {
+class __SYCL_EXPORT image_plain
+    : public ObjBase<std::shared_ptr<image_impl>, image_plain> {
 protected:
-  image_plain(const std::shared_ptr<detail::image_impl> &Impl) : impl{Impl} {}
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
 
   image_plain(image_channel_order Order, image_channel_type Type,
               const range<3> &Range,
@@ -300,8 +302,6 @@ protected:
       uint32_t Dim, size_t Range[3], image_format Format);
   void unsampledImageDestructorNotification(void *UserObj);
 
-  std::shared_ptr<detail::image_impl> impl;
-
   const property_list &getPropList() const;
 };
 
@@ -346,7 +346,7 @@ public:
 // Common base class for unsampled image implementations
 template <int Dimensions, typename AllocatorT>
 class unsampled_image_common : public image_common<Dimensions, AllocatorT> {
-private:
+  friend typename unsampled_image_common::ObjBaseT;
   using common_base = typename detail::image_common<Dimensions, AllocatorT>;
 
 protected:
@@ -427,6 +427,7 @@ private:
 template <int Dimensions = 1, typename AllocatorT = sycl::image_allocator>
 class image : public detail::unsampled_image_common<Dimensions, AllocatorT> {
 private:
+  friend typename image::ObjBaseT;
   using common_base =
       typename detail::unsampled_image_common<Dimensions, AllocatorT>;
 
@@ -694,10 +695,6 @@ private:
   make_image(const backend_input_t<Backend, image<D, A>> &BackendObject,
              const context &TargetContext, event AvailableEvent);
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
   template <typename DataT, int Dims, access::mode AccMode,
             access::target AccTarget, access::placeholder IsPlaceholder,
             typename PropertyListT>
@@ -713,6 +710,7 @@ class unsampled_image
     : public detail::unsampled_image_common<Dimensions, AllocatorT>,
       public detail::OwnerLessBase<unsampled_image<Dimensions, AllocatorT>> {
 private:
+  friend typename unsampled_image::ObjBaseT;
   using common_base =
       typename detail::unsampled_image_common<Dimensions, AllocatorT>;
 
@@ -981,18 +979,6 @@ public:
   }
 
 private:
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   template <typename DataT, int Dims, access_mode AccessMode>
   friend class host_unsampled_image_accessor;
 
@@ -1006,6 +992,7 @@ class sampled_image
     : public detail::image_common<Dimensions, AllocatorT>,
       public detail::OwnerLessBase<sampled_image<Dimensions, AllocatorT>> {
 private:
+  friend typename sampled_image::ObjBaseT;
   using common_base = typename detail::image_common<Dimensions, AllocatorT>;
 
   sampled_image(const std::shared_ptr<detail::image_impl> &Impl)
@@ -1122,18 +1109,6 @@ public:
   }
 
 private:
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   template <typename DataT, int Dims> friend class host_sampled_image_accessor;
 
   template <typename DataT, int Dims, image_target AccessTarget>

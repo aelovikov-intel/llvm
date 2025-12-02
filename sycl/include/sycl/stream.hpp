@@ -828,8 +828,15 @@ inline __width_manipulator__ setw(int Width) {
 /// vector and SYCL types to the console.
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT __SYCL_SPECIAL_CLASS __SYCL_TYPE(stream) stream
-    : public detail::OwnerLessBase<stream> {
+class __SYCL_EXPORT __SYCL_SPECIAL_CLASS __SYCL_TYPE(stream) stream :
+#ifndef __SYCL_DEVICE_ONLY__
+    public detail::ObjBase<std::shared_ptr<detail::stream_impl>, stream>,
+#endif
+    public detail::OwnerLessBase<stream> {
+#ifndef __SYCL_DEVICE_ONLY__
+  friend ObjBaseT;
+#endif
+
 private:
 #ifndef __SYCL_DEVICE_ONLY__
   // Constructor for recreating a stream.
@@ -837,7 +844,7 @@ private:
          detail::GlobalBufAccessorT GlobalBuf,
          detail::GlobalOffsetAccessorT GlobalOffset,
          detail::GlobalBufAccessorT GlobalFlushBuf)
-      : impl{Impl}, GlobalBuf{GlobalBuf}, GlobalOffset{GlobalOffset},
+      : ObjBaseT(Impl), GlobalBuf{GlobalBuf}, GlobalOffset{GlobalOffset},
         GlobalFlushBuf{GlobalFlushBuf} {}
 #endif
 
@@ -907,11 +914,6 @@ public:
 private:
 #ifdef __SYCL_DEVICE_ONLY__
   char padding[sizeof(std::shared_ptr<detail::stream_impl>)];
-#else
-  std::shared_ptr<detail::stream_impl> impl;
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
 #endif
 
   // NOTE: Some members are required for reconstructing the stream, but are not

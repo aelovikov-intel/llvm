@@ -22,10 +22,10 @@
 namespace sycl {
 inline namespace _V1 {
 
-event::event() : impl(detail::event_impl::create_default_event()) {}
+event::event() : event(detail::event_impl::create_default_event()) {}
 
 event::event(cl_event ClEvent, const context &SyclContext)
-    : impl(detail::event_impl::create_from_handle(
+    : event(detail::event_impl::create_from_handle(
           detail::ur::cast<ur_event_handle_t>(ClEvent), SyclContext)) {
   // This is a special interop constructor for OpenCL, so the event must be
   // retained.
@@ -60,9 +60,6 @@ std::vector<event> event::get_wait_list() {
 
   return Result;
 }
-
-event::event(std::shared_ptr<detail::event_impl> event_impl)
-    : impl(std::move(event_impl)) {}
 
 template <typename Param>
 typename detail::is_event_info_desc<Param>::return_type

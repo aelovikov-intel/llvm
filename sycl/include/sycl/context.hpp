@@ -50,7 +50,11 @@ auto get_native(const SyclT &Obj) -> backend_return_t<Backend, SyclT>;
 /// be executed.
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT context : public detail::OwnerLessBase<context> {
+class __SYCL_EXPORT context
+    : public detail::ObjBase<std::shared_ptr<detail::context_impl>, context>,
+      public detail::OwnerLessBase<context> {
+  using ObjBaseT::ObjBaseT;
+
 public:
   /// Constructs a SYCL context instance using an instance of default_selector.
   ///
@@ -245,26 +249,10 @@ public:
                                      sycl::usm::alloc kind) const;
 
 private:
-  /// Constructs a SYCL context object from a valid context_impl instance.
-  context(std::shared_ptr<detail::context_impl> Impl);
-
   ur_native_handle_t getNative() const;
-
-  std::shared_ptr<detail::context_impl> impl;
 
   template <backend Backend, class SyclT>
   friend auto get_native(const SyclT &Obj) -> backend_return_t<Backend, SyclT>;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 
   const property_list &getPropList() const;
 };

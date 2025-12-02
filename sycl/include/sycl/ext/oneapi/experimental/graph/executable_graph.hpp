@@ -30,9 +30,15 @@ namespace detail {
 class graph_impl;
 class exec_graph_impl;
 
+using namespace sycl::detail;
+
 // Templateless executable command-graph base class.
 class __SYCL_EXPORT executable_command_graph
-    : public sycl::detail::OwnerLessBase<executable_command_graph> {
+    : public ObjBase<std::shared_ptr<exec_graph_impl>,
+                     executable_command_graph>,
+      public OwnerLessBase<executable_command_graph> {
+  friend ObjBaseT;
+
 public:
   /// An executable command-graph is not user constructable.
   executable_command_graph() = delete;
@@ -74,14 +80,8 @@ protected:
                            const sycl::context &Ctx,
                            const property_list &PropList = {});
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
-
   /// Creates a backend representation of the graph in \p impl member variable.
   void finalizeImpl();
-
-  std::shared_ptr<detail::exec_graph_impl> impl;
 };
 } // namespace detail
 } // namespace experimental

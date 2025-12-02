@@ -27,6 +27,8 @@ namespace experimental {
 namespace detail {
 // Forward declare ext::oneapi::experimental::detail classes
 class node_impl;
+
+using namespace sycl::detail;
 } // namespace detail
 
 enum class node_type {
@@ -46,7 +48,11 @@ enum class node_type {
 };
 
 /// Class representing a node in the graph, returned by command_graph::add().
-class __SYCL_EXPORT node {
+class __SYCL_EXPORT node
+    : public detail::ObjBase<std::shared_ptr<detail::node_impl>, node> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
   node() = delete;
 
@@ -77,21 +83,6 @@ public:
   friend bool operator!=(const node &LHS, const node &RHS) {
     return !operator==(LHS, RHS);
   }
-
-private:
-  node(const std::shared_ptr<detail::node_impl> &Impl) : impl(Impl) {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
-  template <class T>
-  friend T sycl::detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T sycl::detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
-  std::shared_ptr<detail::node_impl> impl;
 };
 
 namespace property::node {

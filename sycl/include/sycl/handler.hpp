@@ -418,7 +418,9 @@ template <int Dims> bool range_size_fits_in_size_t(const range<Dims> &r) {
 /// \sa kernel
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT handler {
+class __SYCL_EXPORT handler : public detail::ObjBaseTag {
+  // TODO: decide if explicit `std::is_same_v<Obj, handler> in `impl_utils.hpp`
+  // would be better than using the tag above.
 private:
   /// Constructs SYCL handler from the pre-constructed stack-allocated
   /// `handler_impl` (not enforced, but meaningless to do a heap allocation
@@ -2865,9 +2867,8 @@ private:
             class _propertiesT, class>
   friend class ext::intel::experimental::pipe;
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
+  template <class Obj, typename>
+  friend const auto &sycl::detail::getSyclObjImpl(const Obj &SyclObject);
 
   /// Read from a host pipe given a host address and
   /// \param Name name of the host pipe to be passed into lower level runtime

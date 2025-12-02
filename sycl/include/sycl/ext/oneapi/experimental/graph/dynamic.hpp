@@ -44,7 +44,12 @@ class dynamic_parameter_impl;
 class dynamic_command_group_impl;
 } // namespace detail
 
-class __SYCL_EXPORT dynamic_command_group {
+class __SYCL_EXPORT dynamic_command_group
+    : public detail::ObjBase<
+          std::shared_ptr<detail::dynamic_command_group_impl>,
+          dynamic_command_group> {
+  friend ObjBaseT;
+
 public:
   dynamic_command_group(
       const command_graph<graph_state::modifiable> &Graph,
@@ -62,27 +67,22 @@ public:
                          const dynamic_command_group &RHS) {
     return !operator==(LHS, RHS);
   }
-
-private:
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
-
-  std::shared_ptr<detail::dynamic_command_group_impl> impl;
 };
 
 namespace detail {
-class __SYCL_EXPORT dynamic_parameter_base {
+class __SYCL_EXPORT dynamic_parameter_base
+    : public ObjBase<std::shared_ptr<detail::dynamic_parameter_impl>,
+                     dynamic_parameter_base> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
 #ifdef __INTEL_PREVIEW_BREAKING_CHANGES
   dynamic_parameter_base(size_t ParamSize, const void *Data);
   dynamic_parameter_base();
 #else
-  dynamic_parameter_base() = default;
+  dynamic_parameter_base() : ObjBaseT(nullptr) {}
 #endif
-
-  dynamic_parameter_base(
-      const std::shared_ptr<detail::dynamic_parameter_impl> &impl);
 
   dynamic_parameter_base(const sycl::ext::oneapi::experimental::command_graph<
                          graph_state::modifiable>
@@ -112,12 +112,6 @@ protected:
   void updateValue(const raw_kernel_arg *NewRawValue, size_t Size);
 
   void updateAccessor(const sycl::detail::AccessorBaseHost *Acc);
-
-  std::shared_ptr<dynamic_parameter_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
 };
 
 class __SYCL_EXPORT dynamic_work_group_memory_base

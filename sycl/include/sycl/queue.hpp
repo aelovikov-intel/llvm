@@ -294,7 +294,12 @@ event submit_with_event_impl(const queue &Q, PropertiesT Props,
 /// \sa kernel
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT queue : public detail::OwnerLessBase<queue> {
+class __SYCL_EXPORT queue
+    : public detail::ObjBase<std::shared_ptr<detail::queue_impl>, queue>,
+      public detail::OwnerLessBase<queue> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
   /// Constructs a SYCL queue instance using the device returned by an instance
   /// of default_selector.
@@ -3747,19 +3752,6 @@ private:
 #ifdef __INTEL_PREVIEW_BREAKING_CHANGES
   ur_native_handle_t getNative(int32_t &NativeHandleDesc) const;
 #endif
-
-  std::shared_ptr<detail::queue_impl> impl;
-  queue(std::shared_ptr<detail::queue_impl> impl) : impl(impl) {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 
   template <backend BackendName, class SyclObjectT>
   friend auto get_native(const SyclObjectT &Obj)

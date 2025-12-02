@@ -24,23 +24,24 @@ inline namespace _V1 {
 
 platform::platform() : platform(default_selector_v) {}
 
-platform::platform(cl_platform_id PlatformId) {
-  detail::adapter_impl &Adapter =
-      sycl::detail::ur::getAdapter<backend::opencl>();
-  ur_platform_handle_t UrPlatform = nullptr;
-  Adapter.call<detail::UrApiKind::urPlatformCreateWithNativeHandle>(
-      detail::ur::cast<ur_native_handle_t>(PlatformId), Adapter.getUrAdapter(),
-      /* pProperties = */ nullptr, &UrPlatform);
-  impl = detail::platform_impl::getOrMakePlatformImpl(UrPlatform, Adapter)
-             .shared_from_this();
-}
+platform::platform(cl_platform_id PlatformId)
+    : platform([=]() {
+        detail::adapter_impl &Adapter =
+            sycl::detail::ur::getAdapter<backend::opencl>();
+        ur_platform_handle_t UrPlatform = nullptr;
+        Adapter.call<detail::UrApiKind::urPlatformCreateWithNativeHandle>(
+            detail::ur::cast<ur_native_handle_t>(PlatformId),
+            Adapter.getUrAdapter(),
+            /* pProperties = */ nullptr, &UrPlatform);
+        return detail::platform_impl::getOrMakePlatformImpl(UrPlatform, Adapter)
+            .shared_from_this();
+      }()) {}
 
 // protected constructor for internal use
-platform::platform(const device &Device) { *this = Device.get_platform(); }
+platform::platform(const device &Device) : platform(Device.get_platform()) {}
 
-platform::platform(const device_selector &dev_selector) {
-  *this = dev_selector.select_device().get_platform();
-}
+platform::platform(const device_selector &dev_selector)
+    : platform(dev_selector.select_device().get_platform()) {}
 
 cl_platform_id platform::get() const { return impl->get(); }
 

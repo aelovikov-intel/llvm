@@ -27,21 +27,16 @@ namespace experimental {
 namespace detail {
 
 #ifdef __INTEL_PREVIEW_BREAKING_CHANGES
-dynamic_parameter_base::dynamic_parameter_base()
-    : impl(std::make_shared<dynamic_parameter_impl>()) {}
+dynamic_parameter_base::dynamic_parameter_base() : ObjBaseT(nullptr) {}
 #endif
 
 dynamic_parameter_base::dynamic_parameter_base(
-    const std::shared_ptr<detail::dynamic_parameter_impl> &impl)
-    : impl(impl) {}
-
-dynamic_parameter_base::dynamic_parameter_base(
     const command_graph<graph_state::modifiable>)
-    : impl(std::make_shared<dynamic_parameter_impl>()) {}
+    : ObjBaseT(std::make_shared<dynamic_parameter_impl>()) {}
 dynamic_parameter_base::dynamic_parameter_base(
     const command_graph<graph_state::modifiable>, size_t ParamSize,
     const void *Data)
-    : impl(std::make_shared<dynamic_parameter_impl>(ParamSize, Data)) {}
+    : ObjBaseT(std::make_shared<dynamic_parameter_impl>(ParamSize, Data)) {}
 
 void dynamic_parameter_base::updateValue(const void *NewValue, size_t Size) {
   impl->updateValue(NewValue, Size);
@@ -398,7 +393,7 @@ void dynamic_command_group_impl::setActiveIndex(size_t Index) {
 dynamic_command_group::dynamic_command_group(
     const command_graph<graph_state::modifiable> &Graph,
     const std::vector<std::function<void(handler &)>> &CGFList)
-    : impl(std::make_shared<detail::dynamic_command_group_impl>(Graph)) {
+    : ObjBaseT(std::make_shared<detail::dynamic_command_group_impl>(Graph)) {
   if (CGFList.empty()) {
     throw sycl::exception(sycl::make_error_code(errc::invalid),
                           "Dynamic command-group cannot be created with an "

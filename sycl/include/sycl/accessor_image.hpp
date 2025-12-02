@@ -73,10 +73,12 @@ addHostUnsampledImageAccessorAndWait(UnsampledImageAccessorImplHost *Req);
 void __SYCL_EXPORT
 addHostSampledImageAccessorAndWait(SampledImageAccessorImplHost *Req);
 
-class __SYCL_EXPORT UnsampledImageAccessorBaseHost {
+class __SYCL_EXPORT UnsampledImageAccessorBaseHost
+    : public ObjBase<std::shared_ptr<UnsampledImageAccessorImplHost>,
+                     UnsampledImageAccessorBaseHost> {
 protected:
-  UnsampledImageAccessorBaseHost(const UnsampledImageAccessorImplPtr &Impl)
-      : impl{Impl} {}
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
 
   UnsampledImageAccessorBaseHost(sycl::range<3> Size, access_mode AccessMode,
                                  void *SYCLMemObject, int Dims, int ElemSize,
@@ -94,20 +96,6 @@ protected:
   image_channel_type getChannelType() const;
   image_channel_order getChannelOrder() const;
   const property_list &getPropList() const;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
-  UnsampledImageAccessorImplPtr impl;
 
   // The function references helper methods required by GDB pretty-printers
   void GDBMethodsAnchor() {
@@ -145,10 +133,12 @@ protected:
 #endif
 };
 
-class __SYCL_EXPORT SampledImageAccessorBaseHost {
+class __SYCL_EXPORT SampledImageAccessorBaseHost
+    : public ObjBase<std::shared_ptr<SampledImageAccessorImplHost>,
+                     SampledImageAccessorBaseHost> {
 protected:
-  SampledImageAccessorBaseHost(const SampledImageAccessorImplPtr &Impl)
-      : impl{Impl} {}
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
 
   SampledImageAccessorBaseHost(sycl::range<3> Size, void *SYCLMemObject,
                                int Dims, int ElemSize, id<3> Pitch,
@@ -168,20 +158,6 @@ protected:
   image_channel_order getChannelOrder() const;
   image_sampler getSampler() const;
   const property_list &getPropList() const;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
-  SampledImageAccessorImplPtr impl;
 
   // The function references helper methods required by GDB pretty-printers
   void GDBMethodsAnchor() {
@@ -785,6 +761,9 @@ class __SYCL_EBO unsampled_image_accessor :
 #endif // __SYCL_DEVICE_ONLY__
     public detail::OwnerLessBase<
         unsampled_image_accessor<DataT, Dimensions, AccessMode, AccessTarget>> {
+#ifndef __SYCL_DEVICE_ONLY__
+  friend ObjBaseT;
+#endif // __SYCL_DEVICE_ONLY__
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
@@ -936,18 +915,6 @@ private:
   {
     (void)Impl;
   }
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 };
 
 template <typename DataT, int Dimensions = 1,
@@ -958,6 +925,7 @@ class __SYCL_EBO host_unsampled_image_accessor
     : public detail::UnsampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_unsampled_image_accessor<DataT, Dimensions, AccessMode>> {
+  friend ObjBaseT;
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
@@ -1078,18 +1046,6 @@ private:
   host_unsampled_image_accessor(
       const detail::UnsampledImageAccessorImplPtr &Impl)
       : base_class{Impl} {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 };
 
 template <typename DataT, int Dimensions,
@@ -1100,6 +1056,9 @@ class __SYCL_EBO sampled_image_accessor :
 #endif // __SYCL_DEVICE_ONLY__
     public detail::OwnerLessBase<
         sampled_image_accessor<DataT, Dimensions, AccessTarget>> {
+#ifndef __SYCL_DEVICE_ONLY__
+  friend ObjBaseT;
+#endif // __SYCL_DEVICE_ONLY__
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
@@ -1227,18 +1186,6 @@ private:
   {
     (void)Impl;
   }
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 };
 
 template <typename DataT, int Dimensions>
@@ -1246,6 +1193,7 @@ class __SYCL_EBO host_sampled_image_accessor
     : public detail::SampledImageAccessorBaseHost,
       public detail::OwnerLessBase<
           host_sampled_image_accessor<DataT, Dimensions>> {
+  friend ObjBaseT;
   static_assert(std::is_same_v<DataT, int4> || std::is_same_v<DataT, uint4> ||
                     std::is_same_v<DataT, float4> ||
                     std::is_same_v<DataT, half4>,
@@ -1336,18 +1284,6 @@ public:
 private:
   host_sampled_image_accessor(const detail::SampledImageAccessorImplPtr &Impl)
       : base_class{Impl} {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 };
 
 } // namespace _V1

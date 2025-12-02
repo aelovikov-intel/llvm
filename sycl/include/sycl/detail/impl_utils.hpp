@@ -8,55 +8,81 @@
 
 #pragma once
 
-#include <cassert>     // for assert
-#include <functional>  // for hash
-#include <type_traits> // for add_pointer_t
-#include <utility>     // for forward
+#include <cassert>
+#include <functional>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
 namespace sycl {
 inline namespace _V1 {
+class handler;
 namespace detail {
+// To enable SFINAE to limit things to SYCL objects only.
+struct ObjBaseTag {};
 
-// Helper function for extracting implementation from SYCL's interface objects.
-// Note! This function relies on the fact that all SYCL interface classes
-// contain "impl" field that points to implementation object. "impl" field
-// should be accessible from this function.
-//
-// Note that due to a bug in MSVC compilers (including MSVC2019 v19.20), it
-// may not recognize the usage of this function in friend member declarations
-// if the template parameter name there is not equal to the name used here,
-// i.e. 'Obj'. For example, using 'Obj' here and 'T' in such declaration
-// would trigger that error in MSVC:
-//   template <class T>
-//   friend decltype(T::impl) detail::getSyclObjImpl(const T &SyclObject);
-template <class Obj>
-const decltype(Obj::impl) &getSyclObjImpl(const Obj &SyclObject) {
-  assert(SyclObject.impl && "every constructor should create an impl");
-  return SyclObject.impl;
+template <class Obj,
+          typename = std::enable_if_t<std::is_base_of_v<ObjBaseTag, Obj>>>
+const auto &getSyclObjImpl(const Obj &SyclObj) {
+  assert(SyclObj.impl && "every constructor should create an impl");
+  return SyclObj.impl;
 }
 
-// Helper function for creation SYCL interface objects from implementations.
-// Note! These functions rely on the fact that all SYCL interface classes
-// contain "impl" field that points to implementation object. "impl" field
-// should be accessible from these functions.
-template <class T>
-T createSyclObjFromImpl(
-    std::add_rvalue_reference_t<decltype(T::impl)> ImplObj) {
-  return T(std::forward<decltype(ImplObj)>(ImplObj));
+template <class Obj,
+          typename = std::enable_if_t<std::is_base_of_v<ObjBaseTag, Obj>>>
+constexpr auto getCreator(const Obj &SyclObj) {
+  return SyclObj.creator;
 }
 
-template <class T>
-T createSyclObjFromImpl(
-    std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj) {
-  return T(ImplObj);
-}
+template <typename Impl, typename SyclObject> class ObjBase;
+template <typename Impl, typename SyclObject>
+class ObjBase<std::shared_ptr<Impl>, SyclObject> : ObjBaseTag {
+protected:
+  // TODO: Comment about usage and https://godbolt.org/z/WroY7fsYo
+  using ObjBaseT = ObjBase;
+  std::shared_ptr<Impl> impl;
+  explicit ObjBase(std::shared_ptr<Impl> impl) : impl(std::move(impl)) {}
 
-template <class T>
-T createSyclObjFromImpl(
-    std::add_lvalue_reference_t<typename std::remove_reference_t<
-        decltype(getSyclObjImpl(std::declval<T>()))>::element_type>
-        ImplRef) {
-  return createSyclObjFromImpl<T>(ImplRef.shared_from_this());
+  template <class Obj, typename>
+  friend const auto &getSyclObjImpl(const Obj &SyclObj);
+
+  template <class Obj, typename>
+  friend constexpr auto getCreator(const Obj &SyclObj);
+
+  template <typename To>
+  static To createObj(const std::shared_ptr<Impl> &impl) {
+    return To{impl};
+  }
+
+  template <typename To> static To createObj(std::shared_ptr<Impl> &&impl) {
+    return To{std::move(impl)};
+  }
+
+  template <typename To, typename Impl_ = Impl,
+            typename =
+                std::void_t<decltype(std::declval<Impl_>().shared_from_this())>>
+  static To createObj(Impl &impl) {
+    return To{impl.shared_from_this()};
+  }
+
+  template <typename To, typename From>
+  friend To createSyclObjFromImpl(From &&from);
+
+  struct Creator {
+    template <typename To, typename From>
+    static To create(From &&from) {
+      static_assert(std::is_base_of_v<SyclObject, To>);
+      return ObjBase::createObj<To>(std::forward<From>(from));
+    }
+  };
+
+  static constexpr Creator creator{};
+};
+
+template <typename SyclObject, typename From>
+SyclObject createSyclObjFromImpl(From &&from) {
+  using Creator = decltype(getCreator(std::declval<SyclObject>()));
+  return Creator::template create<SyclObject>(std::forward<From>(from));
 }
 
 template <typename T, bool SupportedOnDevice = true> struct sycl_obj_hash {

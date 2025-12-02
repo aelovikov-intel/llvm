@@ -43,16 +43,18 @@ __SYCL_EXPORT void memory_pool::increase_threshold_to(size_t newThreshold) {
 
 memory_pool::memory_pool(const sycl::context &ctx, const sycl::device &dev,
                          sycl::usm::alloc kind,
-                         memory_pool::pool_properties props) {
-  if (kind != sycl::usm::alloc::device)
-    throw sycl::exception(
-        sycl::make_error_code(sycl::errc::feature_not_supported),
-        "Only device allocated memory pools are supported!");
+                         memory_pool::pool_properties props)
+    : memory_pool([&]() {
+        if (kind != sycl::usm::alloc::device)
+          throw sycl::exception(
+              sycl::make_error_code(sycl::errc::feature_not_supported),
+              "Only device allocated memory pools are supported!");
 
-  detail::pool_properties poolProps{props.initial_threshold, props.maximum_size,
-                                    props.zero_init};
-  impl = std::make_shared<detail::memory_pool_impl>(ctx, dev, kind, poolProps);
-}
+        detail::pool_properties poolProps{props.initial_threshold,
+                                          props.maximum_size, props.zero_init};
+        return std::make_shared<detail::memory_pool_impl>(ctx, dev, kind,
+                                                          poolProps);
+      }()) {}
 
 } // namespace ext::oneapi::experimental
 } // namespace _V1

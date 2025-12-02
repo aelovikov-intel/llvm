@@ -66,7 +66,13 @@ std::enable_if_t<is_kernel_v<Func>, kernel_id> get_kernel_id();
 /// Objects of the class identify kernel is some kernel_bundle related APIs
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT kernel_id : public detail::OwnerLessBase<kernel_id> {
+class __SYCL_EXPORT kernel_id
+    : public detail::ObjBase<std::shared_ptr<detail::kernel_id_impl>,
+                             kernel_id>,
+      public detail::OwnerLessBase<kernel_id> {
+  friend ObjBaseT;
+  using ObjBaseT::ObjBaseT;
+
 public:
   kernel_id() = delete;
 
@@ -79,23 +85,6 @@ public:
 
 private:
   kernel_id(const char *Name);
-
-  kernel_id(const std::shared_ptr<detail::kernel_id_impl> &Impl)
-      : impl(std::move(Impl)) {}
-
-  std::shared_ptr<detail::kernel_id_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 };
 
 namespace detail {
@@ -103,13 +92,17 @@ class device_image_impl;
 
 // The class is used as a base for device_image for "untemplating" public
 // methods.
-class __SYCL_EXPORT device_image_plain {
+class __SYCL_EXPORT device_image_plain
+    : public ObjBase<std::shared_ptr<device_image_impl>, device_image_plain> {
+protected:
+  friend ObjBaseT;
+
 public:
   device_image_plain(const std::shared_ptr<device_image_impl> &Impl)
-      : impl(Impl) {}
+      : ObjBaseT(Impl) {}
 
   device_image_plain(std::shared_ptr<device_image_impl> &&Impl)
-      : impl(std::move(Impl)) {}
+      : ObjBaseT(std::move(Impl)) {}
 
   bool operator==(const device_image_plain &RHS) const {
     return impl == RHS.impl;
@@ -131,20 +124,6 @@ protected:
   ur_native_handle_t getNative() const;
 #endif
 
-  std::shared_ptr<device_image_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   backend ext_oneapi_get_backend_impl() const noexcept;
 
 #if (!defined(_HAS_STD_BYTE) || _HAS_STD_BYTE != 0)
@@ -158,6 +137,8 @@ protected:
 template <sycl::bundle_state State>
 class device_image : public detail::device_image_plain,
                      public detail::OwnerLessBase<device_image<State>> {
+  friend ObjBaseT;
+
 public:
   device_image() = delete;
 
@@ -201,18 +182,6 @@ private:
   device_image(std::shared_ptr<detail::device_image_impl> Impl)
       : device_image_plain(std::move(Impl)) {}
 
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
-
   // To allow calling device_image_plain::getNative()
   template <bundle_state> friend class kernel_bundle;
 };
@@ -222,10 +191,18 @@ class kernel_bundle_impl;
 using KernelBundleImplPtr = std::shared_ptr<detail::kernel_bundle_impl>;
 
 // The class is used as a base for kernel_bundle to "untemplate" it's methods
-class __SYCL_EXPORT kernel_bundle_plain {
+class __SYCL_EXPORT kernel_bundle_plain
+    : public ObjBase<std::shared_ptr<detail::kernel_bundle_impl>,
+                     kernel_bundle_plain> {
+protected:
+  friend ObjBaseT;
+
 public:
   kernel_bundle_plain(const detail::KernelBundleImplPtr &Impl)
-      : impl(std::move(Impl)) {}
+      : ObjBaseT(Impl) {}
+
+  kernel_bundle_plain(detail::KernelBundleImplPtr &&Impl)
+      : ObjBaseT(std::move(Impl)) {}
 
   bool operator==(const kernel_bundle_plain &RHS) const {
     return impl == RHS.impl;
@@ -302,8 +279,6 @@ protected:
   // a value different from default value.
   bool is_specialization_constant_set(const char *SpecName) const noexcept;
 
-  detail::KernelBundleImplPtr impl;
-
 private:
   bool ext_oneapi_has_kernel(detail::string_view name);
   kernel ext_oneapi_get_kernel(detail::string_view name);
@@ -324,6 +299,8 @@ private:
 template <bundle_state State>
 class kernel_bundle : public detail::kernel_bundle_plain,
                       public detail::OwnerLessBase<kernel_bundle<State>> {
+  friend ObjBaseT;
+
 public:
   using device_image_iterator = const device_image<State> *;
 
@@ -582,17 +559,6 @@ public:
 private:
   kernel_bundle(detail::KernelBundleImplPtr Impl)
       : kernel_bundle_plain(std::move(Impl)) {}
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
-  template <class T>
-  friend T detail::createSyclObjFromImpl(
-      std::add_lvalue_reference_t<const decltype(T::impl)> ImplObj);
 
   template <backend Backend, bundle_state StateB>
   friend auto get_native(const kernel_bundle<StateB> &Obj)

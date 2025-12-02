@@ -54,35 +54,43 @@ context::context(const std::vector<device> &DeviceList,
     : context(DeviceList, detail::defaultAsyncHandler, PropList) {}
 
 context::context(const std::vector<device> &DeviceList,
-                 async_handler AsyncHandler, const property_list &PropList) {
-  if (DeviceList.empty()) {
-    throw exception(make_error_code(errc::invalid), "DeviceList is empty.");
-  }
+                 async_handler AsyncHandler, const property_list &PropList)
+    : context([&]() {
+        if (DeviceList.empty()) {
+          throw exception(make_error_code(errc::invalid),
+                          "DeviceList is empty.");
+        }
 
-  const auto &RefPlatform =
-      detail::getSyclObjImpl(DeviceList[0].get_platform())->getHandleRef();
-  if (std::any_of(DeviceList.begin(), DeviceList.end(),
-                  [&](const device &CurrentDevice) {
-                    return (detail::getSyclObjImpl(CurrentDevice.get_platform())
-                                ->getHandleRef() != RefPlatform);
-                  }))
-    throw exception(make_error_code(errc::invalid),
-                    "Can't add devices across platforms to a single context.");
-  else
-    impl = detail::context_impl::create(DeviceList, AsyncHandler, PropList);
-}
-context::context(cl_context ClContext, async_handler AsyncHandler) {
-  detail::adapter_impl &Adapter =
-      sycl::detail::ur::getAdapter<backend::opencl>();
+        const auto &RefPlatform =
+            detail::getSyclObjImpl(DeviceList[0].get_platform())
+                ->getHandleRef();
+        if (std::any_of(DeviceList.begin(), DeviceList.end(),
+                        [&](const device &CurrentDevice) {
+                          return (detail::getSyclObjImpl(
+                                      CurrentDevice.get_platform())
+                                      ->getHandleRef() != RefPlatform);
+                        }))
+          throw exception(make_error_code(errc::invalid),
+                          "Can't add devices across platforms to a "
+                          "single context.");
 
-  ur_context_handle_t hContext = nullptr;
-  ur_native_handle_t nativeHandle =
-      reinterpret_cast<ur_native_handle_t>(ClContext);
-  Adapter.call<detail::UrApiKind::urContextCreateWithNativeHandle>(
-      nativeHandle, Adapter.getUrAdapter(), 0u, nullptr, nullptr, &hContext);
+        return detail::context_impl::create(DeviceList, AsyncHandler, PropList);
+      }()) {}
 
-  impl = detail::context_impl::create(hContext, AsyncHandler, Adapter);
-}
+context::context(cl_context ClContext, async_handler AsyncHandler)
+    : context([=]() {
+        detail::adapter_impl &Adapter =
+            sycl::detail::ur::getAdapter<backend::opencl>();
+
+        ur_context_handle_t hContext = nullptr;
+        ur_native_handle_t nativeHandle =
+            reinterpret_cast<ur_native_handle_t>(ClContext);
+        Adapter.call<detail::UrApiKind::urContextCreateWithNativeHandle>(
+            nativeHandle, Adapter.getUrAdapter(), 0u, nullptr, nullptr,
+            &hContext);
+
+        return detail::context_impl::create(hContext, AsyncHandler, Adapter);
+      }()) {}
 
 template <typename Param>
 typename detail::is_context_info_desc<Param>::return_type
@@ -115,9 +123,6 @@ platform context::get_platform() const {
 std::vector<device> context::get_devices() const {
   return impl->get_info<info::context::devices>();
 }
-
-context::context(std::shared_ptr<detail::context_impl> Impl)
-    : impl(std::move(Impl)) {}
 
 ur_native_handle_t context::getNative() const { return impl->getNative(); }
 

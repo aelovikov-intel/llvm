@@ -21,32 +21,32 @@ namespace sycl {
 inline namespace _V1 {
 
 queue::queue(const context &SyclContext, const device_selector &DeviceSelector,
-             const async_handler &AsyncHandler, const property_list &PropList) {
-  const std::vector<device> Devs = SyclContext.get_devices();
+             const async_handler &AsyncHandler, const property_list &PropList)
+    : queue([&]() {
+        const std::vector<device> Devs = SyclContext.get_devices();
 
-  auto Comp = [&DeviceSelector](const device &d1, const device &d2) {
-    return DeviceSelector(d1) < DeviceSelector(d2);
-  };
+        auto Comp = [&DeviceSelector](const device &d1, const device &d2) {
+          return DeviceSelector(d1) < DeviceSelector(d2);
+        };
 
-  const device &SyclDevice = *std::max_element(Devs.begin(), Devs.end(), Comp);
+        const device &SyclDevice =
+            *std::max_element(Devs.begin(), Devs.end(), Comp);
 
-  impl = detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
-                                    *detail::getSyclObjImpl(SyclContext),
-                                    AsyncHandler, PropList);
-}
+        return detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
+                                          *detail::getSyclObjImpl(SyclContext),
+                                          AsyncHandler, PropList);
+      }()) {}
 
 queue::queue(const context &SyclContext, const device &SyclDevice,
-             const async_handler &AsyncHandler, const property_list &PropList) {
-  impl = detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
-                                    *detail::getSyclObjImpl(SyclContext),
-                                    AsyncHandler, PropList);
-}
+             const async_handler &AsyncHandler, const property_list &PropList)
+    : queue(detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
+                                       *detail::getSyclObjImpl(SyclContext),
+                                       AsyncHandler, PropList)) {}
 
 queue::queue(const device &SyclDevice, const async_handler &AsyncHandler,
-             const property_list &PropList) {
-  impl = detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
-                                    AsyncHandler, PropList);
-}
+             const property_list &PropList)
+    : queue(detail::queue_impl::create(*detail::getSyclObjImpl(SyclDevice),
+                                       AsyncHandler, PropList)) {}
 
 queue::queue(const context &SyclContext, const device_selector &deviceSelector,
              const property_list &PropList)
@@ -61,13 +61,12 @@ queue::queue(const context &SyclContext, const device &SyclDevice,
             PropList) {}
 
 queue::queue(cl_command_queue clQueue, const context &SyclContext,
-             const async_handler &AsyncHandler) {
-  const property_list PropList{};
-  impl = detail::queue_impl::create(
-      // TODO(pi2ur): Don't cast straight from cl_command_queue
-      reinterpret_cast<ur_queue_handle_t>(clQueue),
-      *detail::getSyclObjImpl(SyclContext), AsyncHandler, PropList);
-}
+             const async_handler &AsyncHandler)
+    : queue(detail::queue_impl::create(
+          // TODO(pi2ur): Don't cast straight from cl_command_queue
+          reinterpret_cast<ur_queue_handle_t>(clQueue),
+          *detail::getSyclObjImpl(SyclContext), AsyncHandler,
+          property_list{})) {}
 
 cl_command_queue queue::get() const { return impl->get(); }
 

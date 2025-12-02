@@ -35,8 +35,8 @@ TEST(AccessorImplicitConversionTest, ReadWriteAccessorToReadAccessorNonConst) {
   read_write_accessor_non_const_type acc_a;
   auto acc_b = read_accessor_non_const_type(acc_a);
   read_accessor_non_const_type acc_c = acc_a;
-  EXPECT_EQ(acc_a.impl, acc_b.impl);
-  EXPECT_EQ(acc_a.impl, acc_c.impl);
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_b));
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_c));
 }
 
 TEST(AccessorImplicitConversionTest, ReadWriteAccessorToReadAccessorConst) {
@@ -49,8 +49,8 @@ TEST(AccessorImplicitConversionTest, ReadWriteAccessorToReadAccessorConst) {
   read_write_accessor_non_const_type acc_a;
   auto acc_b = read_accessor_non_const_type(acc_a);
   read_accessor_non_const_type acc_c = acc_a;
-  EXPECT_EQ(acc_a.impl, acc_b.impl);
-  EXPECT_EQ(acc_a.impl, acc_c.impl);
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_b));
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_c));
 }
 
 TEST(AccessorImplicitConversionTest, NonConstToConstTypeInReadHostAccessor) {
@@ -85,8 +85,8 @@ TEST(AccessorImplicitConversionTest,
   read_write_host_accessor_non_const_type acc_a;
   auto acc_b = read_host_accessor_non_const_type(acc_a);
   read_host_accessor_non_const_type acc_c = acc_a;
-  EXPECT_EQ(acc_a.impl, acc_b.impl);
-  EXPECT_EQ(acc_a.impl, acc_c.impl);
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_b));
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_c));
 }
 
 TEST(AccessorImplicitConversionTest,
@@ -98,8 +98,8 @@ TEST(AccessorImplicitConversionTest,
   read_write_host_accessor_non_const_type acc_a;
   auto acc_b = read_host_accessor_non_const_type(acc_a);
   read_host_accessor_non_const_type acc_c = acc_a;
-  EXPECT_EQ(acc_a.impl, acc_b.impl);
-  EXPECT_EQ(acc_a.impl, acc_c.impl);
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_b));
+  EXPECT_EQ(sycl::detail::getSyclObjImpl(acc_a), sycl::detail::getSyclObjImpl(acc_c));
 }
 
 TEST(AccessorImplicitConversionTest, NonConstToConstTypeInReadLocalAccessor) {

@@ -24,7 +24,7 @@ namespace sycl {
 inline namespace _V1 {
 
 kernel_id::kernel_id(const char *Name)
-    : impl(std::make_shared<detail::kernel_id_impl>(Name)) {}
+    : kernel_id(std::make_shared<detail::kernel_id_impl>(Name)) {}
 
 const char *kernel_id::get_name() const noexcept { return impl->get_name(); }
 

@@ -14,15 +14,16 @@ inline namespace _V1 {
 namespace ext::oneapi::experimental {
 
 physical_mem::physical_mem(const device &SyclDevice, const context &SyclContext,
-                           size_t NumBytes) {
-  if (!SyclDevice.has(aspect::ext_oneapi_virtual_mem))
-    throw sycl::exception(
-        sycl::make_error_code(sycl::errc::feature_not_supported),
-        "Device does not support aspect::ext_oneapi_virtual_mem.");
+                           size_t NumBytes)
+    : ObjBaseT([&]() {
+        if (!SyclDevice.has(aspect::ext_oneapi_virtual_mem))
+          throw sycl::exception(
+              sycl::make_error_code(sycl::errc::feature_not_supported),
+              "Device does not support aspect::ext_oneapi_virtual_mem.");
 
-  impl = std::make_shared<sycl::detail::physical_mem_impl>(
-      *getSyclObjImpl(SyclDevice), SyclContext, NumBytes);
-}
+        return std::make_shared<sycl::detail::physical_mem_impl>(
+            *getSyclObjImpl(SyclDevice), SyclContext, NumBytes);
+      }()) {}
 
 void *physical_mem::map(uintptr_t Ptr, size_t NumBytes,
                         address_access_mode Mode, size_t Offset) const {

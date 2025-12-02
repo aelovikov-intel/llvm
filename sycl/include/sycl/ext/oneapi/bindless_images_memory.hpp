@@ -29,6 +29,7 @@ class queue;
 namespace ext::oneapi::experimental {
 
 namespace detail {
+using namespace sycl::detail;
 
 class image_mem_impl {
   using raw_handle_type = image_mem_handle;
@@ -57,11 +58,14 @@ private:
 } // namespace detail
 
 /// A class that represents image memory
-class __SYCL_EXPORT image_mem {
+class __SYCL_EXPORT image_mem
+    : public detail::ObjBase<std::shared_ptr<detail::image_mem_impl>,
+                             image_mem> {
+  friend ObjBaseT;
   using raw_handle_type = image_mem_handle;
 
 public:
-  image_mem() = default;
+  image_mem() : ObjBaseT(nullptr) {}
   image_mem(const image_mem &) = default;
   image_mem(image_mem &&rhs) = default;
 
@@ -90,13 +94,6 @@ public:
   image_type get_type() const;
 
   raw_handle_type get_mip_level_mem_handle(const unsigned int level) const;
-
-protected:
-  std::shared_ptr<detail::image_mem_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
 };
 
 /// Direction to copy data from bindless image handle

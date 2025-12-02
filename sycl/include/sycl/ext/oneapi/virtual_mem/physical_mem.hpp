@@ -27,7 +27,11 @@ namespace ext::oneapi::experimental {
 enum class address_access_mode : char { none = 0, read = 1, read_write = 2 };
 
 class __SYCL_EXPORT physical_mem
-    : public sycl::detail::OwnerLessBase<physical_mem> {
+    : public sycl::detail::ObjBase<
+          std::shared_ptr<sycl::detail::physical_mem_impl>, physical_mem>,
+      public sycl::detail::OwnerLessBase<physical_mem> {
+  friend ObjBaseT;
+
 public:
   physical_mem(const device &SyclDevice, const context &SyclContext,
                size_t NumBytes);
@@ -54,17 +58,6 @@ public:
   device get_device() const;
 
   size_t size() const noexcept;
-
-private:
-  std::shared_ptr<sycl::detail::physical_mem_impl> impl;
-
-  template <class Obj>
-  friend const decltype(Obj::impl) &
-  sycl::detail::getSyclObjImpl(const Obj &SyclObject);
-
-  template <class T>
-  friend T sycl::detail::createSyclObjFromImpl(
-      std::add_rvalue_reference_t<decltype(T::impl)> ImplObj);
 };
 
 } // namespace ext::oneapi::experimental
