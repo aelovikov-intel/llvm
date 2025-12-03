@@ -31,8 +31,7 @@ platform::platform(cl_platform_id PlatformId) {
   Adapter.call<detail::UrApiKind::urPlatformCreateWithNativeHandle>(
       detail::ur::cast<ur_native_handle_t>(PlatformId), Adapter.getUrAdapter(),
       /* pProperties = */ nullptr, &UrPlatform);
-  impl = detail::platform_impl::getOrMakePlatformImpl(UrPlatform, Adapter)
-             .shared_from_this();
+  impl = &detail::platform_impl::getOrMakePlatformImpl(UrPlatform, Adapter);
 }
 
 // protected constructor for internal use

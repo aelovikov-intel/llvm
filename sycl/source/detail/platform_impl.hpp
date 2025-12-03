@@ -29,9 +29,7 @@ enum class aspect;
 namespace detail {
 class device_impl;
 
-// TODO: implement extension management for host device
-// TODO: implement parameters treatment for host device
-class platform_impl : public std::enable_shared_from_this<platform_impl> {
+class platform_impl {
   /// Constructs platform_impl from a UR platform handle.
   ///
   /// \param APlatform is a raw plug-in platform handle.
@@ -41,9 +39,9 @@ class platform_impl : public std::enable_shared_from_this<platform_impl> {
   // `platform_impl::getOrMakePlatformImpl` method.
   explicit platform_impl(ur_platform_handle_t APlatform, adapter_impl &Adapter);
 
+public:
   ~platform_impl();
 
-public:
   /// Checks if this platform supports extension.
   ///
   /// \param ExtensionName is a string containing extension name.

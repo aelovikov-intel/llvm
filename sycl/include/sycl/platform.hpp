@@ -57,6 +57,7 @@ void __SYCL_EXPORT enable_ext_oneapi_default_context(bool Val);
 namespace ext::oneapi {
 // Forward declaration
 class filter_selector;
+template <typename SYCLObjT> class weak_object;
 } // namespace ext::oneapi
 
 /// Encapsulates a SYCL platform on which kernels may be executed.
@@ -204,11 +205,17 @@ public:
   /// \return the default context
   context khr_get_default_context() const;
 
+  // Definitions are in `<sycl/ext/oneapi/weak_object.hpp>` to avoid circular
+  // dependencies:
+  inline bool ext_oneapi_owner_before(const platform &Other) const noexcept;
+  inline bool ext_oneapi_owner_before(
+      const ext::oneapi::weak_object<platform> &Other) const noexcept;
+
 private:
   ur_native_handle_t getNative() const;
 
-  std::shared_ptr<detail::platform_impl> impl;
-  platform(std::shared_ptr<detail::platform_impl> impl) : impl(impl) {}
+  detail::platform_impl *impl = nullptr;
+  platform(detail::platform_impl &impl) : impl(&impl) {}
 
   platform(const device &Device);
 

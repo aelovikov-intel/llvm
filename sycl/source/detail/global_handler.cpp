@@ -179,8 +179,8 @@ Sync &GlobalHandler::getSync() {
   return sync;
 }
 
-std::vector<std::shared_ptr<platform_impl>> &GlobalHandler::getPlatformCache() {
-  static std::vector<std::shared_ptr<platform_impl>> &PlatformCache =
+std::vector<std::unique_ptr<platform_impl>> &GlobalHandler::getPlatformCache() {
+  static std::vector<std::unique_ptr<platform_impl>> &PlatformCache =
       getOrCreate(MPlatformCache);
   return PlatformCache;
 }

@@ -47,31 +47,26 @@ platform_impl::~platform_impl() = default;
 platform_impl &
 platform_impl::getOrMakePlatformImpl(ur_platform_handle_t UrPlatform,
                                      adapter_impl &Adapter) {
-  std::shared_ptr<platform_impl> Result;
-  {
-    const std::lock_guard<std::mutex> Guard(
-        GlobalHandler::instance().getPlatformMapMutex());
+  const std::lock_guard<std::mutex> Guard(
+      GlobalHandler::instance().getPlatformMapMutex());
 
-    std::vector<std::shared_ptr<platform_impl>> &PlatformCache =
-        GlobalHandler::instance().getPlatformCache();
+  std::vector<std::unique_ptr<platform_impl>> &PlatformCache =
+      GlobalHandler::instance().getPlatformCache();
 
-    // If we've already seen this platform, return the impl
-    for (const auto &PlatImpl : PlatformCache) {
-      if (PlatImpl->getHandleRef() == UrPlatform)
-        return *PlatImpl;
-    }
-
-    // Otherwise make the impl. Our ctor/dtor are private, so std::make_shared
-    // needs a bit of help...
-    struct creator : platform_impl {
-      creator(ur_platform_handle_t APlatform, adapter_impl &AAdapter)
-          : platform_impl(APlatform, AAdapter) {}
-    };
-    Result = std::make_shared<creator>(UrPlatform, Adapter);
-    PlatformCache.emplace_back(Result);
+  // If we've already seen this platform, return the impl
+  for (const auto &PlatImpl : PlatformCache) {
+    if (PlatImpl->getHandleRef() == UrPlatform)
+      return *PlatImpl;
   }
 
-  return *Result;
+  // Otherwise make the impl. Our ctor/dtor are private, so std::make_unique
+  // needs a bit of help...
+  struct creator : platform_impl {
+    creator(ur_platform_handle_t APlatform, adapter_impl &AAdapter)
+        : platform_impl(APlatform, AAdapter) {}
+  };
+  return *PlatformCache.emplace_back(
+      std::make_unique<creator>(UrPlatform, Adapter));
 }
 
 platform_impl &

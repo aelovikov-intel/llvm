@@ -642,7 +642,6 @@ TEST_F(CommandGraphTest, InOrderQueueEventlessWithDependency) {
     return UR_RESULT_SUCCESS;
   };
 
-  sycl::unittest::UrMock<> Mock;
   mock::getCallbacks().set_before_callback("urEnqueueCommandBufferExp",
                                            beforeUrEnqueueCommandBufferExp);
 

@@ -15,8 +15,9 @@
 #include <sycl/detail/memcpy.hpp>               // for detail
 #include <sycl/exception.hpp>                   // for make_erro...
 #include <sycl/ext/oneapi/weak_object_base.hpp> // for weak_obje...
-#include <sycl/range.hpp>                       // for range
-#include <sycl/stream.hpp>                      // for stream
+#include <sycl/platform.hpp>
+#include <sycl/range.hpp>  // for range
+#include <sycl/stream.hpp> // for stream
 
 #include <memory>   // for shared_ptr
 #include <optional> // for optional
@@ -292,6 +293,8 @@ public:
 } // namespace detail
 template <>
 class weak_object<device> : public detail::weak_object_raw<device> {};
+template <>
+class weak_object<platform> : public detail::weak_object_raw<platform> {};
 } // namespace ext::oneapi
 inline bool
 device::ext_oneapi_owner_before(const device &Other) const noexcept {
@@ -299,6 +302,14 @@ device::ext_oneapi_owner_before(const device &Other) const noexcept {
 }
 inline bool device::ext_oneapi_owner_before(
     const ext::oneapi::weak_object<device> &Other) const noexcept {
+  return impl < Other.impl;
+}
+inline bool
+platform::ext_oneapi_owner_before(const platform &Other) const noexcept {
+  return impl < Other.impl;
+}
+inline bool platform::ext_oneapi_owner_before(
+    const ext::oneapi::weak_object<platform> &Other) const noexcept {
   return impl < Other.impl;
 }
 } // namespace _V1

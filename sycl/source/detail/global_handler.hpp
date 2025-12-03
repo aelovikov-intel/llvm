@@ -63,7 +63,7 @@ public:
   bool isSchedulerAlive() const;
   ProgramManager &getProgramManager();
   Sync &getSync();
-  std::vector<std::shared_ptr<platform_impl>> &getPlatformCache();
+  std::vector<std::unique_ptr<platform_impl>> &getPlatformCache();
 
   std::unordered_map<platform_impl *, std::shared_ptr<context_impl>> &
   getPlatformToDefaultContextCache();
@@ -118,7 +118,7 @@ private:
   InstWithLock<Scheduler> MScheduler;
   InstWithLock<ProgramManager> MProgramManager;
   InstWithLock<Sync> MSync;
-  InstWithLock<std::vector<std::shared_ptr<platform_impl>>> MPlatformCache;
+  InstWithLock<std::vector<std::unique_ptr<platform_impl>>> MPlatformCache;
   InstWithLock<
       std::unordered_map<platform_impl *, std::shared_ptr<context_impl>>>
       MPlatformToDefaultContextCache;
