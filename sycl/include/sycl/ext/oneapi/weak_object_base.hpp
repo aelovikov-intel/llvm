@@ -9,14 +9,16 @@
 #pragma once
 
 #include <sycl/detail/impl_utils.hpp> // for getSyclObjImpl
+#include <sycl/exception.hpp>
 
-#include <memory>  // for weak_ptr
-#include <utility> // for declval
+#include <optional>
+#include <utility>
 
 namespace sycl {
 inline namespace _V1 {
 namespace ext::oneapi::detail {
-template <typename SYCLObjT> class weak_object_base;
+using namespace sycl::detail;
+template <typename SYCLObjT, typename = void> class weak_object_base;
 
 // Helper function for getting the underlying weak_ptr from a weak_object.
 template <typename SYCLObjT>
@@ -26,7 +28,7 @@ getSyclWeakObjImpl(const weak_object_base<SYCLObjT> &WeakObj) {
 }
 
 // Common base class for weak_object.
-template <typename SYCLObjT> class weak_object_base {
+template <typename SYCLObjT, typename> class weak_object_base {
 public:
   using object_type = SYCLObjT;
 
@@ -79,6 +81,66 @@ protected:
   template <class Obj>
   friend decltype(weak_object_base<Obj>::MObjWeakPtr)
   detail::getSyclWeakObjImpl(const weak_object_base<Obj> &WeakObj);
+};
+
+template <typename SYCLObjT>
+class weak_object_base<
+    SYCLObjT,
+    std::enable_if_t<std::is_pointer_v<std::remove_reference_t<
+        decltype(sycl::detail::getSyclObjImpl(std::declval<SYCLObjT>()))>>>> {
+  using Impl =
+      std::decay_t<decltype(*getSyclObjImpl(std::declval<SYCLObjT>()))>;
+  friend SYCLObjT;
+
+  Impl *impl = nullptr;
+
+public:
+  using object_type = SYCLObjT;
+
+  constexpr weak_object_base() noexcept = default;
+  weak_object_base(const SYCLObjT &dev) noexcept
+      : impl(detail::getSyclObjImpl(dev)) {}
+  weak_object_base(const weak_object_base &Other) noexcept = default;
+  weak_object_base(weak_object_base &&Other) noexcept = default;
+
+  weak_object_base &operator=(const SYCLObjT &Other) noexcept {
+    this->impl = detail::getSyclObjImpl(Other);
+    return *this;
+  }
+  weak_object_base &operator=(const weak_object_base &Other) noexcept = default;
+  weak_object_base &operator=(weak_object_base &&Other) noexcept = default;
+
+  bool expired() const noexcept { return impl == nullptr; }
+
+  void reset() noexcept { impl = nullptr; }
+
+#ifndef __SYCL_DEVICE_ONLY__
+  std::optional<SYCLObjT> try_lock() const noexcept {
+    if (!impl)
+      return std::nullopt;
+    return sycl::detail::createSyclObjFromImpl<SYCLObjT>(*impl);
+  }
+  SYCLObjT lock() const {
+    std::optional<SYCLObjT> OptionalObj = try_lock();
+    if (!OptionalObj)
+      throw sycl::exception(sycl::make_error_code(sycl::errc::invalid),
+                            "Referenced object has expired.");
+    return *OptionalObj;
+  }
+  bool owner_before(const SYCLObjT &Other) const noexcept {
+    return impl < detail::getSyclObjImpl(Other);
+  }
+  bool owner_before(const weak_object_base &Other) const noexcept {
+    return impl < Other.impl;
+  }
+#else
+  // On SYCLObjT calls to these functions are disallowed, so declare them but
+  // don't define them to avoid compilation failures.
+  std::optional<SYCLObjT> try_lock() const noexcept;
+  SYCLObjT lock() const;
+  bool owner_before(const SYCLObjT &Other) const noexcept;
+  bool owner_before(const weak_object_base &Other) const noexcept;
+#endif // __SYCL_DEVICE_ONLY__
 };
 } // namespace ext::oneapi::detail
 } // namespace _V1
