@@ -233,59 +233,65 @@ private:
   weak_object<detail::GlobalBufAccessorT> MWeakGlobalFlushBuf;
 };
 
-template <> class weak_object<device> {
-  friend sycl::device;
+namespace detail {
 
-  detail::device_impl *dev_impl = nullptr;
+template <typename SYCLObjT> class weak_object_raw {
+  using Impl = std::decay_t<decltype(*getSyclObjImpl(std::declval<SYCLObjT>()))>;
+  friend SYCLObjT;
+
+  Impl *impl = nullptr;
 
 public:
-  using object_type = device;
+  using object_type = SYCLObjT;
 
-  constexpr weak_object() noexcept = default;
-  weak_object(const device &dev) noexcept
-      : dev_impl(detail::getSyclObjImpl(dev)) {}
-  weak_object(const weak_object &Other) noexcept = default;
-  weak_object(weak_object &&Other) noexcept = default;
+  constexpr weak_object_raw() noexcept = default;
+  weak_object_raw(const SYCLObjT &dev) noexcept
+      : impl(detail::getSyclObjImpl(dev)) {}
+  weak_object_raw(const weak_object_raw &Other) noexcept = default;
+  weak_object_raw(weak_object_raw &&Other) noexcept = default;
 
-  weak_object &operator=(const device &Other) noexcept {
-    this->dev_impl = detail::getSyclObjImpl(Other);
+  weak_object_raw &operator=(const SYCLObjT &Other) noexcept {
+    this->impl = detail::getSyclObjImpl(Other);
     return *this;
   }
-  weak_object &operator=(const weak_object &Other) noexcept = default;
-  weak_object &operator=(weak_object &&Other) noexcept = default;
+  weak_object_raw &operator=(const weak_object_raw &Other) noexcept = default;
+  weak_object_raw &operator=(weak_object_raw &&Other) noexcept = default;
 
-  bool expired() const noexcept { return dev_impl == nullptr; }
+  bool expired() const noexcept { return impl == nullptr; }
 
-  void reset() noexcept { dev_impl = nullptr; }
+  void reset() noexcept { impl = nullptr; }
 
 #ifndef __SYCL_DEVICE_ONLY__
-  std::optional<device> try_lock() const noexcept {
-    if (!dev_impl)
+  std::optional<SYCLObjT> try_lock() const noexcept {
+    if (!impl)
       return std::nullopt;
-    return sycl::detail::createSyclObjFromImpl<device>(*dev_impl);
+    return sycl::detail::createSyclObjFromImpl<SYCLObjT>(*impl);
   }
-  device lock() const {
-    std::optional<device> OptionalObj = try_lock();
+  SYCLObjT lock() const {
+    std::optional<SYCLObjT> OptionalObj = try_lock();
     if (!OptionalObj)
       throw sycl::exception(sycl::make_error_code(sycl::errc::invalid),
                             "Referenced object has expired.");
     return *OptionalObj;
   }
-  bool owner_before(const device &Other) const noexcept {
-    return dev_impl < detail::getSyclObjImpl(Other);
+  bool owner_before(const SYCLObjT &Other) const noexcept {
+    return impl < detail::getSyclObjImpl(Other);
   }
-  bool owner_before(const weak_object &Other) const noexcept {
-    return dev_impl < Other.dev_impl;
+  bool owner_before(const weak_object_raw &Other) const noexcept {
+    return impl < Other.impl;
   }
 #else
-  // On device calls to these functions are disallowed, so declare them but
+  // On SYCLObjT calls to these functions are disallowed, so declare them but
   // don't define them to avoid compilation failures.
-  std::optional<device> try_lock() const noexcept;
-  device lock() const;
-  bool owner_before(const device &Other) const noexcept;
-  bool owner_before(const weak_object &Other) const noexcept;
+  std::optional<SYCLObjT> try_lock() const noexcept;
+  SYCLObjT lock() const;
+  bool owner_before(const SYCLObjT &Other) const noexcept;
+  bool owner_before(const weak_object_raw &Other) const noexcept;
 #endif // __SYCL_DEVICE_ONLY__
 };
+} // namespace detail
+template <>
+class weak_object<device> : public detail::weak_object_raw<device> {};
 } // namespace ext::oneapi
 inline bool
 device::ext_oneapi_owner_before(const device &Other) const noexcept {
@@ -293,7 +299,7 @@ device::ext_oneapi_owner_before(const device &Other) const noexcept {
 }
 inline bool device::ext_oneapi_owner_before(
     const ext::oneapi::weak_object<device> &Other) const noexcept {
-  return impl < Other.dev_impl;
+  return impl < Other.impl;
 }
 } // namespace _V1
 } // namespace sycl
