@@ -250,13 +250,5 @@ inline bool device::ext_oneapi_owner_before(
     const ext::oneapi::weak_object<device> &Other) const noexcept {
   return impl < Other.impl;
 }
-inline bool
-platform::ext_oneapi_owner_before(const platform &Other) const noexcept {
-  return impl < Other.impl;
-}
-inline bool platform::ext_oneapi_owner_before(
-    const ext::oneapi::weak_object<platform> &Other) const noexcept {
-  return impl < Other.impl;
-}
 } // namespace _V1
 } // namespace sycl

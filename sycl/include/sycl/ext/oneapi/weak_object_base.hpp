@@ -16,6 +16,9 @@
 
 namespace sycl {
 inline namespace _V1 {
+namespace detail {
+template <class SyclObjT> class OwnerLessBaseRaw;
+}
 namespace ext::oneapi::detail {
 using namespace sycl::detail;
 template <typename SYCLObjT, typename = void> class weak_object_base;
@@ -91,6 +94,7 @@ class weak_object_base<
   using Impl =
       std::decay_t<decltype(*getSyclObjImpl(std::declval<SYCLObjT>()))>;
   friend SYCLObjT;
+  friend OwnerLessBaseRaw<SYCLObjT>;
 
   Impl *impl = nullptr;
 

@@ -63,7 +63,7 @@ template <typename SYCLObjT> class weak_object;
 /// Encapsulates a SYCL platform on which kernels may be executed.
 ///
 /// \ingroup sycl_api
-class __SYCL_EXPORT platform : public detail::OwnerLessBase<platform> {
+class __SYCL_EXPORT platform : public detail::OwnerLessBaseRaw<platform> {
   friend sycl::detail::ImplUtils;
 
 public:
@@ -204,12 +204,6 @@ public:
   ///
   /// \return the default context
   context khr_get_default_context() const;
-
-  // Definitions are in `<sycl/ext/oneapi/weak_object.hpp>` to avoid circular
-  // dependencies:
-  inline bool ext_oneapi_owner_before(const platform &Other) const noexcept;
-  inline bool ext_oneapi_owner_before(
-      const ext::oneapi::weak_object<platform> &Other) const noexcept;
 
 private:
   ur_native_handle_t getNative() const;

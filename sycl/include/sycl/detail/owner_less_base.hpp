@@ -51,6 +51,40 @@ public:
 #endif
 };
 
+template <class SyclObjT>
+class OwnerLessBaseRaw {
+public:
+#ifndef __SYCL_DEVICE_ONLY__
+  /// Compares the object against a weak object using an owner-based
+  /// implementation-defined ordering.
+  ///
+  /// \param Other is the weak object to compare ordering against.
+  /// \return true if this object precedes \param Other and false otherwise.
+  bool ext_oneapi_owner_before(
+      const ext::oneapi::detail::weak_object_base<SyclObjT> &Other)
+      const noexcept {
+    return getSyclObjImpl(*static_cast<const SyclObjT *>(this)) < Other.impl;
+  }
+
+  /// Compares the object against another object using an owner-based
+  /// implementation-defined ordering.
+  ///
+  /// \param Other is the object to compare ordering against.
+  /// \return true if this object precedes \param Other and false otherwise.
+  bool ext_oneapi_owner_before(const SyclObjT &Other) const noexcept {
+    return getSyclObjImpl(*static_cast<const SyclObjT *>(this)) <
+           getSyclObjImpl(Other);
+  }
+#else
+  // On device calls to these functions are disallowed, so declare them but
+  // don't define them to avoid compilation failures.
+  bool ext_oneapi_owner_before(
+      const ext::oneapi::detail::weak_object_base<SyclObjT> &Other)
+      const noexcept;
+  bool ext_oneapi_owner_before(const SyclObjT &Other) const noexcept;
+#endif
+};
+
 } // namespace detail
 } // namespace _V1
 } // namespace sycl
